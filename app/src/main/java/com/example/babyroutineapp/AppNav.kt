@@ -1,9 +1,12 @@
 package com.example.babyroutineapp
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -42,11 +45,14 @@ private fun frequencyToText(f: Frequency): String = when (f) {
 
 // -------------------- APP ROOT --------------------
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun AppRoot() {
-    val routines = remember { mutableStateListOf<Routine>() }
+    // Routines existantes viennent du fichier Util.kt
+    val routines = remember { mutableStateListOf<Routine>().apply { addAll(initialRoutines) } }
 
-    val doneByDate = remember { mutableStateMapOf<String, androidx.compose.runtime.snapshots.SnapshotStateList<String>>() }
+    // doneByDate["2026-02-09"] = liste d’IDs terminés ce jour-là
+    val doneByDate = remember { mutableStateMapOf<String, SnapshotStateList<String>>() }
 
     val navController = rememberNavController()
 

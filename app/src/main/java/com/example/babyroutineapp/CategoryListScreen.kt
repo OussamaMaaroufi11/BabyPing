@@ -48,7 +48,7 @@ fun CategoryListScreen(
         containerColor = Color.Transparent,
         topBar = {
             TopAppBar(
-                title = { /* pas de titre comme la capture */ },
+                title = {},
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "Retour")

@@ -101,10 +101,6 @@ fun EmptyRoutineCard(text: String) {
     }
 }
 
-/**
- * Liste des rappels sur l'accueil (comme ta maquette).
- * frequencyTextProvider te permet d'afficher la vraie fréquence (Daily / Some days / Once)
- */
 @Composable
 fun ReminderList(
     routines: List<Routine>,
@@ -134,7 +130,7 @@ fun ReminderCard(
 ) {
     val shape = RoundedCornerShape(16.dp)
 
-    // Couleurs alternées comme la maquette (stable selon le titre)
+    // Couleurs alternées comme la maquette
     val bgColors = listOf(
         Color(0xFFDDEEFF),
         Color(0xFFFFF0C9),

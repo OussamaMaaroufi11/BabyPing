@@ -54,7 +54,7 @@ fun BabyPingHomeScreen(
                     .padding(horizontal = 18.dp, vertical = 14.dp)
             ) {
 
-                // ---------------- LOGO HEADER ----------------
+                // ---------------- LOGO TOP ----------------
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.Center,
@@ -133,7 +133,7 @@ fun BabyPingHomeScreen(
 
                 Spacer(Modifier.height(18.dp))
 
-                // ---------------- RAPPELS LIST ----------------
+                // ---------------- LISTE DES ROUTINES ----------------
                 if (routines.isEmpty()) {
                     EmptyRoutineCard(
                         text = "Aucune routine n’est enregistrée\npour le moment. Veuillez créer une\nnouvelle routine."

@@ -6,12 +6,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Alarm
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.Notifications
-import androidx.compose.material.icons.filled.RadioButtonUnchecked
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -22,6 +17,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.example.babyroutineapp.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -29,7 +25,6 @@ fun CategoryListScreen(
     categoryTitle: String,
     routines: List<Routine>,
 
-    // calcul auto (02/04 et %)
     doneIdsToday: List<String>,
     onToggleDone: (String) -> Unit,
 
@@ -37,7 +32,9 @@ fun CategoryListScreen(
     onQuit: () -> Unit,
     onAdd: () -> Unit,
 
-    // afficher "Tous les jours" / ...
+    onEdit: (String) -> Unit,     // PP2
+    onDelete: (String) -> Unit,   // PP2
+
     frequencyTextProvider: (Routine) -> String
 ) {
     val bg = Brush.verticalGradient(
@@ -73,7 +70,6 @@ fun CategoryListScreen(
                 .padding(padding)
                 .padding(horizontal = 16.dp)
         ) {
-            // Banner
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -120,10 +116,13 @@ fun CategoryListScreen(
 
                         RoutineItemCard(
                             title = routine.title,
+                            description = routine.description,
                             time = routine.time,
                             frequencyText = frequencyTextProvider(routine),
                             done = isDone,
-                            onToggleDone = { onToggleDone(routine.id) }
+                            onToggleDone = { onToggleDone(routine.id) },
+                            onEdit = { onEdit(routine.id) },
+                            onDelete = { onDelete(routine.id) }
                         )
                     }
                 }
@@ -149,10 +148,13 @@ fun CategoryListScreen(
 @Composable
 private fun RoutineItemCard(
     title: String,
+    description: String,
     time: String,
     frequencyText: String,
     done: Boolean,
-    onToggleDone: () -> Unit
+    onToggleDone: () -> Unit,
+    onEdit: () -> Unit,
+    onDelete: () -> Unit
 ) {
     val shape = RoundedCornerShape(18.dp)
 
@@ -170,23 +172,22 @@ private fun RoutineItemCard(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    text = title,
-                    modifier = Modifier.weight(1f),
-                    fontWeight = FontWeight.Medium
-                )
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(title, fontWeight = FontWeight.Medium)
+                    if (description.isNotBlank()) {
+                        Spacer(Modifier.height(2.dp))
+                        Text(description, style = MaterialTheme.typography.bodySmall, color = Color.Gray)
+                    }
+                }
 
                 Text(text = time, fontWeight = FontWeight.Bold)
 
                 Spacer(Modifier.width(10.dp))
-
                 Icon(Icons.Default.Alarm, contentDescription = null, modifier = Modifier.size(18.dp))
                 Spacer(Modifier.width(8.dp))
                 Icon(Icons.Default.Notifications, contentDescription = null, modifier = Modifier.size(18.dp))
 
-                Spacer(Modifier.width(10.dp))
-
-                // bouton done / not done
+                Spacer(Modifier.width(8.dp))
                 IconButton(onClick = onToggleDone) {
                     Icon(
                         imageVector = if (done) Icons.Default.CheckCircle else Icons.Default.RadioButtonUnchecked,
@@ -198,11 +199,24 @@ private fun RoutineItemCard(
 
             Spacer(Modifier.height(6.dp))
 
-            Text(
-                text = frequencyText,
-                color = Color.Gray,
-                style = MaterialTheme.typography.bodySmall
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = frequencyText,
+                    color = Color.Gray,
+                    style = MaterialTheme.typography.bodySmall,
+                    modifier = Modifier.weight(1f)
+                )
+
+                IconButton(onClick = onEdit) {
+                    Icon(Icons.Default.Edit, contentDescription = "Modifier")
+                }
+                IconButton(onClick = onDelete) {
+                    Icon(Icons.Default.Delete, contentDescription = "Supprimer", tint = Color(0xFFD32F2F))
+                }
+            }
         }
     }
 }

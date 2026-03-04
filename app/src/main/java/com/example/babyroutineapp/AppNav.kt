@@ -16,13 +16,15 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-// -------------------- ROUTES --------------------
-
 sealed class Screen(val route: String) {
     object Home : Screen("home")
 
     object AddRoutine : Screen("addRoutine/{category}") {
         fun route(category: String) = "addRoutine/$category"
+    }
+
+    object EditRoutine : Screen("editRoutine/{id}") {
+        fun route(id: String) = "editRoutine/$id"
     }
 
     object Suivi : Screen("suivi")
@@ -31,8 +33,6 @@ sealed class Screen(val route: String) {
         fun route(category: String) = "category/$category"
     }
 }
-
-// -------------------- HELPERS --------------------
 
 private fun todayKey(): String =
     SimpleDateFormat("yyyy-MM-dd", Locale.CANADA).format(Date())
@@ -43,34 +43,33 @@ private fun frequencyToText(f: Frequency): String = when (f) {
     Frequency.ONCE -> "Une seule fois"
 }
 
-// -------------------- APP ROOT --------------------
-
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun AppRoot() {
-    // Routines existantes viennent du fichier Util.kt
     val routines = remember { mutableStateListOf<Routine>().apply { addAll(initialRoutines) } }
 
-    // doneByDate["2026-02-09"] = liste d’IDs terminés ce jour-là
     val doneByDate = remember { mutableStateMapOf<String, SnapshotStateList<String>>() }
-
     val navController = rememberNavController()
 
-    // state du jour
     val dateKey = todayKey()
     val doneTodayIds = doneByDate.getOrPut(dateKey) { mutableStateListOf() }
 
-    // calcul automatique (02/04 + %)
     val totalToday = routines.size
     val doneToday = doneTodayIds.size.coerceAtMost(totalToday)
     val progress = if (totalToday == 0) 0f else doneToday.toFloat() / totalToday.toFloat()
 
-    NavHost(
-        navController = navController,
-        startDestination = Screen.Home.route
-    ) {
+    fun upsertRoutine(r: Routine) {
+        val idx = routines.indexOfFirst { it.id == r.id }
+        if (idx == -1) routines.add(r) else routines[idx] = r
+    }
 
-        // ---------------- HOME ----------------
+    fun deleteRoutine(id: String) {
+        routines.removeAll { it.id == id }
+        doneByDate.values.forEach { list -> list.remove(id) }
+    }
+
+    NavHost(navController = navController, startDestination = Screen.Home.route) {
+
         composable(Screen.Home.route) {
             BabyPingHomeScreen(
                 routines = routines,
@@ -78,8 +77,8 @@ fun AppRoot() {
                 onTabSelected = { tab ->
                     if (tab == HomeTab.Suivi) navController.navigate(Screen.Suivi.route)
                 },
-                onNewReminderClick = {
-                    navController.navigate(Screen.AddRoutine.route("Quotidiens"))
+                onNewReminderClick = { category ->
+                    navController.navigate(Screen.AddRoutine.route(category))
                 },
                 onCategoryClick = { category ->
                     navController.navigate(Screen.CategoryList.route(category))
@@ -87,12 +86,11 @@ fun AppRoot() {
             )
         }
 
-        // ---------------- CATEGORY LIST ----------------
         composable(
             route = Screen.CategoryList.route,
             arguments = listOf(navArgument("category") { type = NavType.StringType })
-        ) { backStackEntry ->
-            val category = backStackEntry.arguments?.getString("category") ?: "Quotidiens"
+        ) { entry ->
+            val category = entry.arguments?.getString("category") ?: "Quotidiens"
 
             CategoryListScreen(
                 categoryTitle = category,
@@ -105,11 +103,12 @@ fun AppRoot() {
                 onBack = { navController.popBackStack() },
                 onQuit = { navController.popBackStack(Screen.Home.route, inclusive = false) },
                 onAdd = { navController.navigate(Screen.AddRoutine.route(category)) },
+                onEdit = { id -> navController.navigate(Screen.EditRoutine.route(id)) },
+                onDelete = { id -> deleteRoutine(id) },
                 frequencyTextProvider = { routine -> frequencyToText(routine.frequency) }
             )
         }
 
-        // ---------------- SUIVI ----------------
         composable(Screen.Suivi.route) {
             SuiviScreen(
                 onBack = { navController.popBackStack() },
@@ -125,21 +124,43 @@ fun AppRoot() {
             )
         }
 
-        // ---------------- ADD ROUTINE ----------------
         composable(
             route = Screen.AddRoutine.route,
             arguments = listOf(navArgument("category") { type = NavType.StringType })
-        ) { backStackEntry ->
-            val category = backStackEntry.arguments?.getString("category") ?: "Quotidiens"
+        ) { entry ->
+            val category = entry.arguments?.getString("category") ?: "Quotidiens"
 
             AddRoutineScreen(
                 category = category,
+                initialRoutine = null, // mode ADD
                 onSave = { newRoutine ->
-                    routines.add(newRoutine)
+                    upsertRoutine(newRoutine)
                     navController.popBackStack()
                 },
                 onBack = { navController.popBackStack() }
             )
+        }
+
+        composable(
+            route = Screen.EditRoutine.route,
+            arguments = listOf(navArgument("id") { type = NavType.StringType })
+        ) { entry ->
+            val id = entry.arguments?.getString("id") ?: ""
+            val routine = routines.firstOrNull { it.id == id }
+
+            if (routine == null) {
+                navController.popBackStack()
+            } else {
+                AddRoutineScreen(
+                    category = routine.category,
+                    initialRoutine = routine, // mode EDIT
+                    onSave = { editedRoutine ->
+                        upsertRoutine(editedRoutine)
+                        navController.popBackStack()
+                    },
+                    onBack = { navController.popBackStack() }
+                )
+            }
         }
     }
 }

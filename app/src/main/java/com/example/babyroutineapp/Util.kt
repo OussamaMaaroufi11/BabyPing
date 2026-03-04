@@ -8,7 +8,6 @@ import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material.icons.filled.Stroller
 import androidx.compose.ui.graphics.Color
 
-// Catégories existantes
 val homeCategories = listOf(
     HomeCategory("Quotidiens", Icons.Filled.CalendarToday, Color(0xFFDDEEFF)),
     HomeCategory("Programmes", Icons.Filled.DateRange, Color(0xFFFFF0C9)),
@@ -17,11 +16,11 @@ val homeCategories = listOf(
     HomeCategory("Courses", Icons.Filled.ShoppingCart, Color(0xFFE89FFF))
 )
 
-// Routines existantes
 val initialRoutines = listOf(
     Routine(
         id = "r1",
         title = "Changer la couche",
+        description = "Routine du matin",
         time = "07:00",
         category = "Quotidiens",
         frequency = Frequency.DAILY,
@@ -30,6 +29,7 @@ val initialRoutines = listOf(
     Routine(
         id = "r2",
         title = "Petit déjeuner",
+        description = "Lait + céréales",
         time = "08:00",
         category = "Quotidiens",
         frequency = Frequency.DAILY,
@@ -38,6 +38,7 @@ val initialRoutines = listOf(
     Routine(
         id = "r3",
         title = "Sieste",
+        description = "Repos après-midi",
         time = "14:00",
         category = "Programmes",
         frequency = Frequency.SOME_DAYS,
@@ -46,6 +47,7 @@ val initialRoutines = listOf(
     Routine(
         id = "r4",
         title = "Jeu",
+        description = "Jeu éducatif",
         time = "16:00",
         category = "Activités",
         frequency = Frequency.DAILY,

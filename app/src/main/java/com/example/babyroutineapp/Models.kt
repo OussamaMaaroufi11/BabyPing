@@ -10,6 +10,7 @@ enum class HomeTab { Home, Suivi }
 data class Routine(
     val id: String,
     val title: String,
+    val description: String = "",
     val time: String,
     val category: String,
     val frequency: Frequency = Frequency.DAILY,

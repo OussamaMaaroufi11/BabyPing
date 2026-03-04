@@ -4,13 +4,36 @@ import android.app.TimePickerDialog
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccessTime
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.RadioButton
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -22,21 +45,25 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import java.util.Calendar
 import java.util.UUID
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddRoutineScreen(
     category: String,
+    initialRoutine: Routine?,          // null = add, non-null = edit
     onSave: (Routine) -> Unit,
     onBack: () -> Unit
 ) {
     val context = LocalContext.current
 
-    var title by remember { mutableStateOf("") }
-    var time by remember { mutableStateOf("") }
+    var title by remember { mutableStateOf(initialRoutine?.title ?: "") }
+    var description by remember { mutableStateOf(initialRoutine?.description ?: "") }
+    var time by remember { mutableStateOf(initialRoutine?.time ?: "") }
 
-    var frequency by remember { mutableStateOf(Frequency.DAILY) }
-    var priority by remember { mutableStateOf(Priority.HIGH) }
+    var frequency by remember { mutableStateOf(initialRoutine?.frequency ?: Frequency.DAILY) }
+    var priority by remember { mutableStateOf(initialRoutine?.priority ?: Priority.HIGH) }
 
     var error by remember { mutableStateOf<String?>(null) }
 
@@ -65,7 +92,12 @@ fun AddRoutineScreen(
         containerColor = Color.Transparent,
         topBar = {
             TopAppBar(
-                title = { Text("Création d'une nouvelle routine", fontWeight = FontWeight.SemiBold) },
+                title = {
+                    Text(
+                        text = if (initialRoutine == null) "Création d'une nouvelle routine" else "Modifier la routine",
+                        fontWeight = FontWeight.SemiBold
+                    )
+                },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "Retour")
@@ -80,6 +112,7 @@ fun AddRoutineScreen(
                 .fillMaxSize()
                 .background(bg)
                 .padding(padding)
+                .verticalScroll(rememberScrollState())
                 .padding(horizontal = 16.dp)
         ) {
 
@@ -115,18 +148,24 @@ fun AddRoutineScreen(
 
                     OutlinedTextField(
                         value = title,
-                        onValueChange = {
-                            title = it
-                            error = null
-                        },
+                        onValueChange = { title = it; error = null },
                         label = { Text("Nom de la routine") },
                         modifier = Modifier.fillMaxWidth(),
                         singleLine = true,
                         isError = error != null && title.isBlank()
                     )
+
+                    OutlinedTextField(
+                        value = description,
+                        onValueChange = { description = it; error = null },
+                        label = { Text("Description") },
+                        modifier = Modifier.fillMaxWidth(),
+                        minLines = 2
+                    )
+
                     OutlinedTextField(
                         value = time,
-                        onValueChange = { /* readOnly */ },
+                        onValueChange = {},
                         readOnly = true,
                         label = { Text("Heure") },
                         trailingIcon = {
@@ -139,7 +178,6 @@ fun AddRoutineScreen(
                             .clickable { openTimePicker() },
                         isError = error != null && time.isBlank()
                     )
-
 
                     Text("Fréquence", fontWeight = FontWeight.SemiBold)
                     FrequencyRadio("Tous les jours", frequency == Frequency.DAILY) { frequency = Frequency.DAILY }
@@ -156,11 +194,7 @@ fun AddRoutineScreen(
                     }
 
                     if (error != null) {
-                        Text(
-                            text = error!!,
-                            color = Color.Red,
-                            style = MaterialTheme.typography.bodySmall
-                        )
+                        Text(error!!, color = Color.Red, style = MaterialTheme.typography.bodySmall)
                     }
 
                     Button(
@@ -170,10 +204,13 @@ fun AddRoutineScreen(
                                 return@Button
                             }
 
+                            val id = initialRoutine?.id ?: UUID.randomUUID().toString()
+
                             onSave(
                                 Routine(
-                                    id = UUID.randomUUID().toString(),
+                                    id = id,
                                     title = title.trim(),
+                                    description = description.trim(),
                                     time = time,
                                     category = category,
                                     frequency = frequency,
@@ -187,7 +224,11 @@ fun AddRoutineScreen(
                             .fillMaxWidth()
                             .height(52.dp)
                     ) {
-                        Text("Sauvegarder", color = Color.Black, fontWeight = FontWeight.SemiBold)
+                        Text(
+                            text = if (initialRoutine == null) "Sauvegarder" else "Mettre à jour",
+                            color = Color.Black,
+                            fontWeight = FontWeight.SemiBold
+                        )
                     }
                 }
             }
@@ -199,10 +240,7 @@ fun AddRoutineScreen(
 
 @Composable
 private fun FrequencyRadio(label: String, selected: Boolean, onSelect: () -> Unit) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.fillMaxWidth()
-    ) {
+    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
         RadioButton(selected = selected, onClick = onSelect)
         Text(label)
     }

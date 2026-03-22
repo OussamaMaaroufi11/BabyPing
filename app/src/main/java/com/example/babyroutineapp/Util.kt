@@ -8,19 +8,42 @@ import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material.icons.filled.Stroller
 import androidx.compose.ui.graphics.Color
 
+// -------------------- CATÉGORIES --------------------
+
 val homeCategories = listOf(
-    HomeCategory("Quotidiens", Icons.Filled.CalendarToday, Color(0xFFDDEEFF)),
-    HomeCategory("Programmes", Icons.Filled.DateRange, Color(0xFFFFF0C9)),
-    HomeCategory("Santé", Icons.Filled.MonitorHeart, Color(0xFFFFE3E3)),
-    HomeCategory("Activités", Icons.Filled.Stroller, Color(0xFFE8F7EA)),
-    HomeCategory("Courses", Icons.Filled.ShoppingCart, Color(0xFFE89FFF))
+    HomeCategory(
+        title = "Quotidiens",
+        icon = Icons.Filled.CalendarToday,
+        bgColor = Color(0xFFBDE3FF) // bleu doux
+    ),
+    HomeCategory(
+        title = "Programmes",
+        icon = Icons.Filled.DateRange,
+        bgColor = Color(0xFFFFE7A8) // jaune pastel
+    ),
+    HomeCategory(
+        title = "Santé",
+        icon = Icons.Filled.MonitorHeart,
+        bgColor = Color(0xFFFFC9C9) // rouge doux
+    ),
+    HomeCategory(
+        title = "Activités",
+        icon = Icons.Filled.Stroller,
+        bgColor = Color(0xFFCFF5D6) // vert pastel
+    ),
+    HomeCategory(
+        title = "Courses",
+        icon = Icons.Filled.ShoppingCart,
+        bgColor = Color(0xFFE9C8FF) // violet doux
+    )
 )
+
+// -------------------- ROUTINES INITIALES --------------------
 
 val initialRoutines = listOf(
     Routine(
         id = "r1",
         title = "Changer la couche",
-        description = "Routine du matin",
         time = "07:00",
         category = "Quotidiens",
         frequency = Frequency.DAILY,
@@ -29,7 +52,6 @@ val initialRoutines = listOf(
     Routine(
         id = "r2",
         title = "Petit déjeuner",
-        description = "Lait + céréales",
         time = "08:00",
         category = "Quotidiens",
         frequency = Frequency.DAILY,
@@ -38,7 +60,6 @@ val initialRoutines = listOf(
     Routine(
         id = "r3",
         title = "Sieste",
-        description = "Repos après-midi",
         time = "14:00",
         category = "Programmes",
         frequency = Frequency.SOME_DAYS,
@@ -47,7 +68,6 @@ val initialRoutines = listOf(
     Routine(
         id = "r4",
         title = "Jeu",
-        description = "Jeu éducatif",
         time = "16:00",
         category = "Activités",
         frequency = Frequency.DAILY,

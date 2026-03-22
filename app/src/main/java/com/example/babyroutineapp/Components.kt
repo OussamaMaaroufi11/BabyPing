@@ -6,6 +6,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -17,11 +18,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import kotlin.math.absoluteValue
+
+// ---------------- CATEGORY MINI CARD ----------------
 
 @Composable
 fun CategoryMiniCard(
@@ -31,155 +35,188 @@ fun CategoryMiniCard(
     bgColor: Color,
     onClick: (() -> Unit)? = null
 ) {
-    val shape = RoundedCornerShape(16.dp)
+    val colors = MaterialTheme.colorScheme
+    val shape = RoundedCornerShape(18.dp)
 
     val clickableModifier =
         if (onClick != null) Modifier.clickable { onClick() } else Modifier
 
     Surface(
         shape = shape,
-        color = bgColor,
+        color = bgColor.copy(alpha = 0.85f),
         modifier = Modifier
             .width(170.dp)
-            .height(86.dp)
-            .border(1.dp, Color(0x55000000), shape)
+            .height(90.dp)
+            .border(1.dp, colors.outline.copy(alpha = 0.3f), shape)
             .then(clickableModifier),
-        tonalElevation = 0.dp,
-        shadowElevation = 0.dp
+        shadowElevation = 6.dp
     ) {
-        Column(Modifier.padding(12.dp)) {
+        Column(modifier = Modifier.padding(12.dp)) {
+
             Row(verticalAlignment = Alignment.CenterVertically) {
+
                 Box(
                     modifier = Modifier
-                        .size(34.dp)
+                        .size(36.dp)
                         .clip(CircleShape)
-                        .background(Color.White.copy(alpha = 0.75f))
-                        .border(1.dp, Color(0x22000000), CircleShape),
+                        .background(colors.surface.copy(alpha = 0.75f))
+                        .border(
+                            1.dp,
+                            colors.outline.copy(alpha = 0.3f),
+                            CircleShape
+                        ),
                     contentAlignment = Alignment.Center
                 ) {
-                    Icon(icon, contentDescription = null, tint = Color.Black)
+                    Icon(
+                        imageVector = icon,
+                        contentDescription = null,
+                        tint = colors.onSurface
+                    )
                 }
-                Spacer(Modifier.width(10.dp))
+
+                Spacer(modifier = Modifier.width(10.dp))
+
                 Text(
                     text = title,
                     style = MaterialTheme.typography.bodyMedium,
                     fontWeight = FontWeight.Medium,
-                    maxLines = 1
+                    maxLines = 1,
+                    color = colors.onSurface
                 )
             }
 
-            Spacer(Modifier.weight(1f))
+            Spacer(modifier = Modifier.weight(1f))
 
             Text(
                 text = count.toString(),
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Black,
                 modifier = Modifier.fillMaxWidth(),
-                textAlign = TextAlign.End
+                textAlign = TextAlign.End,
+                color = colors.onSurface
             )
         }
     }
 }
 
+// ---------------- EMPTY ----------------
+
 @Composable
 fun EmptyRoutineCard(text: String) {
-    val shape = RoundedCornerShape(22.dp)
+    val colors = MaterialTheme.colorScheme
+
     Surface(
-        shape = shape,
-        color = Color.White.copy(alpha = 0.9f),
-        shadowElevation = 10.dp,
+        shape = RoundedCornerShape(22.dp),
+        color = colors.surface,
+        shadowElevation = 8.dp,
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 18.dp)
     ) {
         Text(
             text = text,
-            modifier = Modifier.padding(horizontal = 18.dp, vertical = 18.dp),
+            modifier = Modifier.padding(18.dp),
             style = MaterialTheme.typography.bodyMedium,
-            color = Color.Black
+            color = colors.onSurface
         )
     }
 }
 
+// ---------------- LIST ----------------
+
 @Composable
 fun ReminderList(
     routines: List<Routine>,
-    frequencyTextProvider: (Routine) -> String
+    frequencyTextProvider: (Routine) -> String,
+    onRoutineClick: (Routine) -> Unit
 ) {
+    val listState = rememberLazyListState()
+
     LazyColumn(
+        state = listState,
         verticalArrangement = Arrangement.spacedBy(10.dp),
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier.fillMaxWidth(),
+        contentPadding = PaddingValues(bottom = 90.dp)
     ) {
-        items(routines) { routine ->
+        items(routines, key = { it.id }) { routine ->
             ReminderCard(
                 title = routine.title,
                 time = routine.time,
-                frequencyText = frequencyTextProvider(routine)
+                frequencyText = frequencyTextProvider(routine),
+                onClick = { onRoutineClick(routine) }
             )
         }
-
-        item { Spacer(Modifier.height(10.dp)) }
     }
 }
+
+// ---------------- CARD ----------------
 
 @Composable
 fun ReminderCard(
     title: String,
     time: String,
-    frequencyText: String
+    frequencyText: String,
+    onClick: () -> Unit
 ) {
-    val shape = RoundedCornerShape(16.dp)
+    val colors = MaterialTheme.colorScheme
+    val shape = RoundedCornerShape(18.dp)
 
-    // Couleurs alternées comme la maquette
-    val bgColors = listOf(
+    val lightColors = listOf(
         Color(0xFFDDEEFF),
         Color(0xFFFFF0C9),
         Color(0xFFFFE3E3),
         Color(0xFFE8F7EA)
     )
-    val bg = bgColors[(title.hashCode().absoluteValue) % bgColors.size]
+
+    val darkColors = listOf(
+        colors.surfaceVariant,
+        colors.surface,
+        colors.surfaceVariant.copy(alpha = 0.9f),
+        colors.surface.copy(alpha = 0.92f)
+    )
+
+    val isDark = colors.background.luminance() < 0.5f
+    val bgList = if (isDark) darkColors else lightColors
+    val backgroundColor = bgList[(title.hashCode().absoluteValue) % bgList.size]
 
     Surface(
         shape = shape,
-        color = bg,
+        color = backgroundColor,
         shadowElevation = 6.dp,
         modifier = Modifier
             .fillMaxWidth()
-            .border(1.dp, Color(0x33000000), shape)
+            .border(1.dp, colors.outline.copy(alpha = 0.35f), shape)
+            .clickable { onClick() }
     ) {
-        Column(Modifier.padding(14.dp)) {
+        Column(modifier = Modifier.padding(14.dp)) {
 
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+
                 Text(
                     text = title,
                     modifier = Modifier.weight(1f),
-                    fontWeight = FontWeight.Medium
+                    fontWeight = FontWeight.Medium,
+                    color = colors.onSurface
                 )
 
-                Text(text = time, fontWeight = FontWeight.Bold)
-
-                Spacer(Modifier.width(10.dp))
-
-                Icon(
-                    imageVector = Icons.Default.Alarm,
-                    contentDescription = null,
-                    tint = Color.Black,
-                    modifier = Modifier.size(18.dp)
+                Text(
+                    text = time,
+                    fontWeight = FontWeight.Bold,
+                    color = colors.onSurface
                 )
+
+                Spacer(modifier = Modifier.width(10.dp))
+
+                Icon(Icons.Default.Alarm, null, tint = colors.onSurface)
             }
 
-            Spacer(Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(8.dp))
 
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+
                 Text(
                     text = frequencyText,
-                    color = Color.Gray,
+                    color = colors.onSurfaceVariant,
                     style = MaterialTheme.typography.bodySmall,
                     modifier = Modifier.weight(1f)
                 )
@@ -187,8 +224,7 @@ fun ReminderCard(
                 Icon(
                     imageVector = Icons.Default.Notifications,
                     contentDescription = null,
-                    tint = Color.Black,
-                    modifier = Modifier.size(18.dp)
+                    tint = colors.onSurface
                 )
             }
         }

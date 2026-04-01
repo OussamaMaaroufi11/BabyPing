@@ -1,4 +1,4 @@
-package com.example.babyroutineapp
+package com.app.babyroutine.ui.screens
 
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateFloatAsState
@@ -22,9 +22,9 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Alarm
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
@@ -53,6 +53,8 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.app.babyroutine.R
+import com.app.babyroutine.model.Routine
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -91,7 +93,7 @@ fun CategoryListScreen(
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(
-                            imageVector = Icons.Default.ArrowBack,
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Retour"
                         )
                     }
@@ -105,7 +107,10 @@ fun CategoryListScreen(
         floatingActionButton = {
             FloatingActionButton(
                 onClick = onAdd,
-                containerColor = colors.secondary
+                containerColor = colors.secondary,
+                contentColor = Color.Black,
+                modifier = Modifier
+                    .padding(end = 10.dp, bottom = 60.dp)
             ) {
                 Icon(
                     imageVector = Icons.Default.Add,
@@ -186,6 +191,7 @@ fun CategoryListScreen(
 
                         RoutineItemCard(
                             title = routine.title,
+                            description = routine.description,
                             time = routine.time,
                             frequencyText = frequencyTextProvider(routine),
                             done = isDone,
@@ -199,8 +205,8 @@ fun CategoryListScreen(
 
             OutlinedButton(
                 onClick = onQuit,
-                shape = RoundedCornerShape(28.dp),
-                border = ButtonDefaults.outlinedButtonBorder,
+                shape = RoundedCornerShape(size = 28.dp),
+                border = ButtonDefaults.outlinedButtonBorder(enabled = true),
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(54.dp)
@@ -218,6 +224,7 @@ fun CategoryListScreen(
 @Composable
 private fun RoutineItemCard(
     title: String,
+    description: String,
     time: String,
     frequencyText: String,
     done: Boolean,
@@ -228,23 +235,26 @@ private fun RoutineItemCard(
     val colors = MaterialTheme.colorScheme
     val shape = RoundedCornerShape(18.dp)
 
+    val doneBackground = colors.secondary.copy(alpha = 0.20f)
+    val doneBorder = colors.secondary.copy(alpha = 0.65f)
+
     val cardColor = animateColorAsState(
-        targetValue = if (done) colors.secondaryContainer else colors.surface,
+        targetValue = if (done) doneBackground else colors.surface,
         label = "cardColor"
     )
 
     val borderColor = animateColorAsState(
-        targetValue = if (done) colors.primary else colors.outline.copy(alpha = 0.4f),
+        targetValue = if (done) doneBorder else colors.outline.copy(alpha = 0.4f),
         label = "borderColor"
     )
 
     val mainTextColor = animateColorAsState(
-        targetValue = if (done) colors.primary else colors.onSurface,
+        targetValue = if (done) colors.secondary else colors.onSurface,
         label = "mainTextColor"
     )
 
     val secondaryTextColor = animateColorAsState(
-        targetValue = if (done) colors.onSecondaryContainer else colors.onSurfaceVariant,
+        targetValue = if (done) colors.onSurface else colors.onSurfaceVariant,
         label = "secondaryTextColor"
     )
 
@@ -257,7 +267,7 @@ private fun RoutineItemCard(
     Surface(
         shape = shape,
         color = cardColor.value,
-        shadowElevation = 6.dp,
+        shadowElevation = if (done) 12.dp else 6.dp,
         modifier = Modifier
             .fillMaxWidth()
             .border(1.dp, borderColor.value, shape)
@@ -311,6 +321,17 @@ private fun RoutineItemCard(
                 }
             }
 
+            if (description.isNotBlank()) {
+                Spacer(modifier = Modifier.size(6.dp))
+
+                Text(
+                    text = description,
+                    color = secondaryTextColor.value,
+                    style = MaterialTheme.typography.bodySmall,
+                    maxLines = 2
+                )
+            }
+
             Spacer(modifier = Modifier.size(6.dp))
 
             Row(
@@ -330,7 +351,7 @@ private fun RoutineItemCard(
                     Icon(
                         imageVector = Icons.Default.Edit,
                         contentDescription = null,
-                        tint = if (done) colors.outline else colors.primary
+                        tint = if (done) colors.secondary else colors.onSurfaceVariant
                     )
                 }
 
@@ -341,7 +362,7 @@ private fun RoutineItemCard(
                     Icon(
                         imageVector = Icons.Default.Delete,
                         contentDescription = null,
-                        tint = if (done) colors.outline else colors.error
+                        tint = if (done) colors.secondary else colors.onSurfaceVariant
                     )
                 }
             }

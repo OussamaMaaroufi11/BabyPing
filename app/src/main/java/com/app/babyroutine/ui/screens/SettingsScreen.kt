@@ -1,4 +1,4 @@
-package com.example.babyroutineapp
+package com.app.babyroutine.ui.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -6,13 +6,13 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 
@@ -30,7 +30,7 @@ fun SettingsScreen(
     val colors = MaterialTheme.colorScheme
 
     val backgroundBrush = Brush.verticalGradient(
-        colors = listOf(
+        listOf(
             colors.background,
             colors.surface,
             colors.surfaceVariant.copy(alpha = 0.4f),
@@ -43,19 +43,11 @@ fun SettingsScreen(
         topBar = {
             TopAppBar(
                 title = {
-                    Text(
-                        text = "Paramètres",
-                        fontWeight = FontWeight.SemiBold,
-                        color = colors.onSurface
-                    )
+                    Text("Paramètres", fontWeight = FontWeight.SemiBold)
                 },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(
-                            Icons.Default.ArrowBack,
-                            contentDescription = "Retour",
-                            tint = colors.onSurface
-                        )
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, null)
                     }
                 }
             )
@@ -71,19 +63,16 @@ fun SettingsScreen(
             verticalArrangement = Arrangement.spacedBy(18.dp)
         ) {
 
-            // -------- PROFILE CARD --------
             Surface(
                 shape = RoundedCornerShape(24.dp),
                 color = colors.surface,
-                tonalElevation = 3.dp,
-                shadowElevation = 6.dp,
-                modifier = Modifier.fillMaxWidth()
+                shadowElevation = 10.dp,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { onProfileClick() }
             ) {
                 Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { onProfileClick() }
-                        .padding(16.dp),
+                    modifier = Modifier.padding(16.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
 
@@ -91,44 +80,25 @@ fun SettingsScreen(
                         modifier = Modifier
                             .size(50.dp)
                             .background(
-                                colors.secondary.copy(alpha = 0.25f),
+                                colors.secondary.copy(alpha = 0.2f),
                                 CircleShape
                             ),
                         contentAlignment = Alignment.Center
                     ) {
-                        Icon(
-                            Icons.Default.Person,
-                            contentDescription = null,
-                            tint = colors.primary
-                        )
+                        Icon(Icons.Default.Person, null, tint = colors.primary)
                     }
 
                     Spacer(modifier = Modifier.width(12.dp))
 
                     Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            text = "Profil",
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.SemiBold,
-                            color = colors.onSurface
-                        )
-
-                        Text(
-                            text = profileName,
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = colors.onSurfaceVariant
-                        )
+                        Text("Profil", fontWeight = FontWeight.SemiBold)
+                        Text(profileName, color = colors.onSurfaceVariant)
                     }
 
-                    Icon(
-                        Icons.Default.ChevronRight,
-                        contentDescription = null,
-                        tint = colors.onSurfaceVariant
-                    )
+                    Icon(Icons.Default.ChevronRight, null)
                 }
             }
 
-            // -------- SWITCH ITEMS --------
             SettingsSwitchItem(
                 icon = Icons.Default.DarkMode,
                 title = "Mode sombre",
@@ -148,7 +118,7 @@ fun SettingsScreen(
 
 @Composable
 private fun SettingsSwitchItem(
-    icon: ImageVector,
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
     title: String,
     checked: Boolean,
     onCheckedChange: (Boolean) -> Unit
@@ -158,14 +128,11 @@ private fun SettingsSwitchItem(
     Surface(
         shape = RoundedCornerShape(24.dp),
         color = colors.surface,
-        tonalElevation = 3.dp,
-        shadowElevation = 4.dp,
+        shadowElevation = 6.dp,
         modifier = Modifier.fillMaxWidth()
     ) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 18.dp),
+            modifier = Modifier.padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
 
@@ -173,30 +140,28 @@ private fun SettingsSwitchItem(
                 modifier = Modifier
                     .size(44.dp)
                     .background(
-                        colors.secondary.copy(alpha = 0.25f),
+                        colors.secondary.copy(alpha = 0.2f),
                         CircleShape
                     ),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(
-                    imageVector = icon,
-                    contentDescription = null,
-                    tint = colors.primary
-                )
+                Icon(icon, null, tint = colors.primary)
             }
 
             Spacer(modifier = Modifier.width(12.dp))
 
             Text(
                 text = title,
-                modifier = Modifier.weight(1f),
-                style = MaterialTheme.typography.titleMedium,
-                color = colors.onSurface
+                modifier = Modifier.weight(1f)
             )
 
             Switch(
                 checked = checked,
-                onCheckedChange = onCheckedChange
+                onCheckedChange = onCheckedChange,
+                colors = SwitchDefaults.colors(
+                    checkedThumbColor = colors.primary,
+                    checkedTrackColor = colors.primary.copy(alpha = 0.5f)
+                )
             )
         }
     }

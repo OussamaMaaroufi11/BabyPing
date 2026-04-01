@@ -1,4 +1,4 @@
-package com.example.babyroutineapp
+package com.app.babyroutine
 
 import android.os.Build
 import android.os.Bundle
@@ -8,9 +8,10 @@ import androidx.activity.enableEdgeToEdge
 import androidx.annotation.RequiresApi
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.compose.runtime.remember
-import com.example.babyroutineapp.ui.theme.BabyRoutineAppTheme
+import androidx.compose.runtime.setValue
+import com.app.babyroutine.navigation.AppRoot
+import com.app.babyroutine.ui.theme.BabyRoutineAppTheme
 
 class MainActivity : ComponentActivity() {
 

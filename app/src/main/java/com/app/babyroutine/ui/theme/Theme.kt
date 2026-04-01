@@ -1,4 +1,4 @@
-package com.example.babyroutineapp.ui.theme
+package com.app.babyroutine.ui.theme
 
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
@@ -33,28 +33,31 @@ private val LightColors = lightColorScheme(
 )
 
 private val DarkColors = darkColorScheme(
-    primary = Color(0xFF71E4E0),
-    onPrimary = Color(0xFF082B2B),
+    primary = Color(0xFF00E5FF),
+    onPrimary = Color.Black,
 
-    secondary = Color(0xFF8ED9A8),
-    onSecondary = Color(0xFF0E2116),
+    secondary = Color(0xFF7CFFB2),
+    onSecondary = Color.Black,
 
-    secondaryContainer = Color(0xFF5A536B),
-    onSecondaryContainer = Color(0xFFF4EFFA),
+    secondaryContainer = Color(0xFF23324A),
+    onSecondaryContainer = Color(0xFFEAF2FF),
 
-    tertiary = Color(0xFF2B1F36),
-    onTertiary = Color(0xFFF1E8F8),
+    background = Color(0xFF101827),
+    onBackground = Color(0xFFEAF2FF),
 
-    background = Color(0xFF10131A),
-    onBackground = Color(0xFFF3F2F7),
+    surface = Color(0xFF182235),
+    onSurface = Color(0xFFEAF2FF),
 
-    surface = Color(0xFF1A1F29),
-    onSurface = Color(0xFFF3F2F7),
+    surfaceVariant = Color(0xFF22314A),
+    onSurfaceVariant = Color(0xFFBFD0EA),
 
-    surfaceVariant = Color(0xFF222A35),
-    onSurfaceVariant = Color(0xFFC7D0DD),
+    outline = Color(0xFF415574),
 
-    outline = Color(0xFF556070)
+    tertiary = Color(0xFF8F7CFF),
+    onTertiary = Color.White,
+
+    error = Color(0xFFFF6B6B),
+    onError = Color.Black
 )
 
 @Composable

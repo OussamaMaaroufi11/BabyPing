@@ -1,17 +1,19 @@
-package com.example.babyroutineapp
+package com.app.babyroutine.ui.screens
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -32,7 +34,7 @@ fun ProfileScreen(
     var phone by remember { mutableStateOf(initialPhone) }
 
     val backgroundBrush = Brush.verticalGradient(
-        colors = listOf(
+        listOf(
             colors.background,
             colors.surface,
             colors.surfaceVariant.copy(alpha = 0.4f),
@@ -45,19 +47,11 @@ fun ProfileScreen(
         topBar = {
             TopAppBar(
                 title = {
-                    Text(
-                        text = "Mon profil",
-                        fontWeight = FontWeight.SemiBold,
-                        color = colors.onSurface
-                    )
+                    Text("Mon profil", fontWeight = FontWeight.SemiBold)
                 },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(
-                            imageVector = Icons.Default.ArrowBack,
-                            contentDescription = "Retour",
-                            tint = colors.onSurface
-                        )
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, null)
                     }
                 }
             )
@@ -73,13 +67,17 @@ fun ProfileScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
 
-            Card(
-                shape = RoundedCornerShape(24.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = colors.surface.copy(alpha = 0.95f)
-                ),
-                elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
-                modifier = Modifier.fillMaxWidth()
+            Surface(
+                shape = RoundedCornerShape(26.dp),
+                color = colors.surface,
+                shadowElevation = 12.dp,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .border(
+                        1.dp,
+                        colors.primary.copy(alpha = 0.2f),
+                        RoundedCornerShape(26.dp)
+                    )
             ) {
                 Column(
                     modifier = Modifier.padding(20.dp),
@@ -87,25 +85,28 @@ fun ProfileScreen(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
 
-                    // Avatar circle (plus joli)
                     Box(
                         modifier = Modifier
-                            .size(64.dp)
+                            .size(70.dp)
                             .clip(CircleShape)
-                            .background(colors.secondary.copy(alpha = 0.25f)),
+                            .background(colors.secondary.copy(alpha = 0.2f))
+                            .border(
+                                2.dp,
+                                colors.primary.copy(alpha = 0.5f),
+                                CircleShape
+                            ),
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
-                            imageVector = Icons.Default.Person,
-                            contentDescription = null,
+                            Icons.Default.Person,
+                            null,
                             tint = colors.primary,
-                            modifier = Modifier.size(32.dp)
+                            modifier = Modifier.size(34.dp)
                         )
                     }
 
                     Text(
-                        text = "Modifier les informations",
-                        style = MaterialTheme.typography.titleMedium,
+                        "Modifier les informations",
                         fontWeight = FontWeight.SemiBold,
                         color = colors.onSurface
                     )
@@ -115,7 +116,6 @@ fun ProfileScreen(
                         onValueChange = { name = it },
                         label = { Text("Nom complet") },
                         modifier = Modifier.fillMaxWidth(),
-                        singleLine = true,
                         shape = RoundedCornerShape(16.dp)
                     )
 
@@ -124,7 +124,6 @@ fun ProfileScreen(
                         onValueChange = { email = it },
                         label = { Text("Email") },
                         modifier = Modifier.fillMaxWidth(),
-                        singleLine = true,
                         shape = RoundedCornerShape(16.dp)
                     )
 
@@ -133,11 +132,10 @@ fun ProfileScreen(
                         onValueChange = { phone = it },
                         label = { Text("Téléphone") },
                         modifier = Modifier.fillMaxWidth(),
-                        singleLine = true,
                         shape = RoundedCornerShape(16.dp)
                     )
 
-                    Spacer(modifier = Modifier.height(6.dp))
+                    Spacer(modifier = Modifier.height(8.dp))
 
                     Button(
                         onClick = {
@@ -145,17 +143,14 @@ fun ProfileScreen(
                         },
                         shape = RoundedCornerShape(30.dp),
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = colors.secondary,
-                            contentColor = colors.onSecondary
+                            containerColor = colors.primary,
+                            contentColor = androidx.compose.ui.graphics.Color.Black
                         ),
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(54.dp)
                     ) {
-                        Text(
-                            text = "Enregistrer",
-                            fontWeight = FontWeight.SemiBold
-                        )
+                        Text("Enregistrer", fontWeight = FontWeight.SemiBold)
                     }
                 }
             }

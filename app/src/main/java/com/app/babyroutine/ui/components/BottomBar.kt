@@ -1,4 +1,4 @@
-package com.example.babyroutineapp
+package com.app.babyroutine.ui.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -14,7 +14,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.FavoriteBorder
+import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -24,12 +24,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.app.babyroutine.model.HomeTab
 
 @Composable
 fun BabyPingBottomBar(
@@ -40,8 +41,8 @@ fun BabyPingBottomBar(
 
     Surface(
         color = colors.background,
-        tonalElevation = 2.dp,
-        shadowElevation = 8.dp
+        tonalElevation = 3.dp,
+        shadowElevation = 10.dp
     ) {
         Row(
             modifier = Modifier
@@ -59,7 +60,7 @@ fun BabyPingBottomBar(
 
             BigBottomItem(
                 label = "Suivi",
-                icon = Icons.Default.FavoriteBorder,
+                icon = Icons.Default.CalendarToday,
                 selected = selected == HomeTab.Suivi,
                 onClick = { onSelected(HomeTab.Suivi) }
             )
@@ -70,7 +71,7 @@ fun BabyPingBottomBar(
 @Composable
 private fun BigBottomItem(
     label: String,
-    icon: ImageVector,
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
     selected: Boolean,
     onClick: () -> Unit
 ) {
@@ -78,24 +79,26 @@ private fun BigBottomItem(
     val itemShape = RoundedCornerShape(18.dp)
 
     val backgroundColor =
-        if (selected) colors.secondary
-        else colors.surfaceVariant.copy(alpha = 0.72f)
+        if (selected) colors.secondary.copy(alpha = 0.9f)
+        else colors.surfaceVariant.copy(alpha = 0.45f)
 
     val contentColor =
-        if (selected) colors.onSecondary
+        if (selected) Color.Black
         else colors.onSurfaceVariant
 
     val borderColor =
-        if (selected) colors.secondary.copy(alpha = 0.18f)
-        else colors.outline.copy(alpha = 0.18f)
+        if (selected) colors.secondary.copy(alpha = 0.55f)
+        else colors.outline.copy(alpha = 0.22f)
+
+    val textColor =
+        if (selected) colors.onBackground
+        else colors.onSurfaceVariant
 
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier
             .width(124.dp)
-            .semantics {
-                this.selected = selected
-            }
+            .semantics { this.selected = selected }
             .clickable(
                 role = Role.Tab,
                 onClick = onClick
@@ -117,7 +120,7 @@ private fun BigBottomItem(
                 imageVector = icon,
                 contentDescription = label,
                 tint = contentColor,
-                modifier = Modifier.size(27.dp)
+                modifier = Modifier.size(28.dp)
             )
         }
 
@@ -127,7 +130,7 @@ private fun BigBottomItem(
             text = label,
             style = MaterialTheme.typography.labelLarge,
             fontWeight = if (selected) FontWeight.Bold else FontWeight.SemiBold,
-            color = if (selected) colors.onBackground else colors.onSurfaceVariant
+            color = textColor
         )
     }
 }

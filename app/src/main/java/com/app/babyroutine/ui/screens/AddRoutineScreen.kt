@@ -1,4 +1,4 @@
-package com.example.babyroutineapp
+package com.app.babyroutine.ui.screens
 
 import android.app.TimePickerDialog
 import androidx.compose.foundation.Image
@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -42,11 +43,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.app.babyroutine.R
+import com.app.babyroutine.model.Frequency
+import com.app.babyroutine.model.Priority
+import com.app.babyroutine.model.Routine
 import java.util.Calendar
 import java.util.UUID
 
@@ -64,6 +70,7 @@ fun AddRoutineScreen(
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
 
     var title by remember { mutableStateOf(initialRoutine?.title ?: "") }
+    var description by remember { mutableStateOf(initialRoutine?.description ?: "") }
     var time by remember { mutableStateOf(initialRoutine?.time ?: "") }
     var frequency by remember { mutableStateOf(initialRoutine?.frequency ?: Frequency.DAILY) }
     var priority by remember { mutableStateOf(initialRoutine?.priority ?: Priority.HIGH) }
@@ -131,7 +138,8 @@ fun AddRoutineScreen(
                 .fillMaxSize()
                 .background(backgroundBrush)
                 .padding(innerPadding)
-                .padding(horizontal = 16.dp),
+                .padding(horizontal = 16.dp)
+                .imePadding(),
             contentPadding = PaddingValues(bottom = 24.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
@@ -181,6 +189,18 @@ fun AddRoutineScreen(
                             modifier = Modifier.fillMaxWidth(),
                             singleLine = true,
                             isError = errorMessage != null && title.isBlank(),
+                            shape = RoundedCornerShape(18.dp)
+                        )
+
+                        OutlinedTextField(
+                            value = description,
+                            onValueChange = {
+                                description = it
+                            },
+                            label = { Text("Description") },
+                            modifier = Modifier.fillMaxWidth(),
+                            minLines = 2,
+                            maxLines = 3,
                             shape = RoundedCornerShape(18.dp)
                         )
 
@@ -285,6 +305,7 @@ fun AddRoutineScreen(
                                     Routine(
                                         id = routineId,
                                         title = title.trim(),
+                                        description = description.trim(),
                                         time = time,
                                         category = category,
                                         frequency = frequency,
@@ -294,8 +315,8 @@ fun AddRoutineScreen(
                             },
                             shape = RoundedCornerShape(28.dp),
                             colors = ButtonDefaults.buttonColors(
-                                containerColor = colors.secondary,
-                                contentColor = colors.onSecondary
+                                containerColor = colors.primary,
+                                contentColor = Color.Black
                             ),
                             modifier = Modifier
                                 .fillMaxWidth()

@@ -1,4 +1,4 @@
-package com.example.babyroutineapp
+package com.example.babyroutine
 
 import org.junit.Test
 

@@ -1,10 +1,20 @@
-package com.example.babyroutineapp
+package com.app.babyroutine.ui.screens
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
@@ -13,17 +23,39 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Lightbulb
 import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.app.babyroutine.R
+import com.app.babyroutine.data.homeCategories
+import com.app.babyroutine.model.HomeTab
+import com.app.babyroutine.model.Routine
+import com.app.babyroutine.ui.components.BabyPingBottomBar
+import com.app.babyroutine.ui.components.CategoryMiniCard
+import com.app.babyroutine.ui.components.EmptyRoutineCard
+import com.app.babyroutine.ui.components.ReminderList
 
 @Composable
 fun BabyPingHomeScreen(
@@ -38,11 +70,14 @@ fun BabyPingHomeScreen(
     val colors = MaterialTheme.colorScheme
     val categories = remember { homeCategories }
     var showCategoryPicker by remember { mutableStateOf(false) }
-    val suggestion: SmartSuggestion? = remember(routines) { buildSmartSuggestion(routines) }
+
 
     Scaffold(
         bottomBar = {
-            BabyPingBottomBar(selected = selectedTab, onSelected = onTabSelected)
+            BabyPingBottomBar(
+                selected = selectedTab,
+                onSelected = onTabSelected
+            )
         },
         containerColor = colors.background
     ) { innerPadding ->
@@ -53,45 +88,48 @@ fun BabyPingHomeScreen(
                 .background(babyPingBackgroundBrush())
                 .padding(innerPadding)
         ) {
-
             Column(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(horizontal = 18.dp, vertical = 14.dp)
             ) {
 
-                // HEADER
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
+                    IconButton(
+                        onClick = onSettingsClick,
+                        modifier = Modifier.size(56.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Settings,
+                            contentDescription = "Paramètres",
+                            tint = colors.primary,
+                            modifier = Modifier.size(38.dp)
+                        )
+                    }
+
                     Spacer(modifier = Modifier.weight(1f))
 
                     Image(
                         painter = painterResource(id = R.drawable.babyping),
-                        contentDescription = null,
-                        modifier = Modifier.size(56.dp),
-                        contentScale = ContentScale.Fit
+                        contentDescription = "Logo BabyPing",
+                        modifier = Modifier.size(90.dp),
+                        contentScale = ContentScale.Crop
                     )
-
-                    Spacer(modifier = Modifier.weight(1f))
-
-                    IconButton(onClick = onSettingsClick) {
-                        Icon(Icons.Default.Settings, null, tint = colors.primary)
-                    }
                 }
 
-                Spacer(Modifier.height(14.dp))
+                Spacer(modifier = Modifier.height(14.dp))
 
-                // CATEGORIES
                 Text(
-                    "Catégories",
+                    text = "Catégories",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold,
                     color = colors.onBackground
                 )
 
-                Spacer(Modifier.height(10.dp))
+                Spacer(modifier = Modifier.height(10.dp))
 
                 LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     items(categories) { category ->
@@ -105,18 +143,8 @@ fun BabyPingHomeScreen(
                     }
                 }
 
-                Spacer(Modifier.height(18.dp))
+                Spacer(modifier = Modifier.height(18.dp))
 
-                // SMART CARD
-                suggestion?.let {
-                    SmartSuggestionCard(
-                        message = it.message,
-                        onClick = { onNewReminderClick(it.category) }
-                    )
-                    Spacer(Modifier.height(18.dp))
-                }
-
-                // HEADER LIST
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically
@@ -128,11 +156,11 @@ fun BabyPingHomeScreen(
                         color = colors.onBackground
                     )
 
-                    Spacer(Modifier.weight(1f))
+                    Spacer(modifier = Modifier.weight(1f))
 
                     Text("Nouveau", color = colors.onSurfaceVariant)
 
-                    Spacer(Modifier.width(10.dp))
+                    Spacer(modifier = Modifier.width(10.dp))
 
                     IconButton(
                         onClick = { showCategoryPicker = true },
@@ -145,7 +173,7 @@ fun BabyPingHomeScreen(
                     }
                 }
 
-                Spacer(Modifier.height(18.dp))
+                Spacer(modifier = Modifier.height(18.dp))
 
                 if (routines.isEmpty()) {
                     EmptyRoutineCard("Aucune routine enregistrée.")
@@ -160,17 +188,19 @@ fun BabyPingHomeScreen(
                 }
             }
 
-            // -------- DIALOG FINAL --------
             if (showCategoryPicker) {
-
                 val isDark = colors.background.luminance() < 0.5f
 
                 AlertDialog(
                     onDismissRequest = { showCategoryPicker = false },
+                    modifier = Modifier.shadow(
+                        20.dp,
+                        shape = RoundedCornerShape(30.dp),
+                        ambientColor = colors.primary.copy(alpha = 0.2f),
+                        spotColor = colors.primary.copy(alpha = 0.3f)
+                    ),
                     containerColor = colors.surface,
                     shape = RoundedCornerShape(30.dp),
-
-                    // ✅ SANS LE "+"
                     title = {
                         Column(
                             verticalArrangement = Arrangement.spacedBy(6.dp)
@@ -189,7 +219,6 @@ fun BabyPingHomeScreen(
                             )
                         }
                     },
-
                     text = {
                         Column(
                             verticalArrangement = Arrangement.spacedBy(12.dp)
@@ -197,7 +226,7 @@ fun BabyPingHomeScreen(
                             categories.forEach { category ->
 
                                 val bgColor =
-                                    if (isDark) colors.surfaceVariant
+                                    if (isDark) colors.surfaceVariant.copy(alpha = 0.75f)
                                     else category.bgColor
 
                                 OutlinedButton(
@@ -219,12 +248,11 @@ fun BabyPingHomeScreen(
                                         verticalAlignment = Alignment.CenterVertically,
                                         horizontalArrangement = Arrangement.Start
                                     ) {
-
                                         Box(
                                             modifier = Modifier
                                                 .size(34.dp)
                                                 .clip(CircleShape)
-                                                .background(colors.surface),
+                                                .background(colors.background.copy(alpha = 0.9f)),
                                             contentAlignment = Alignment.Center
                                         ) {
                                             Icon(
@@ -234,7 +262,7 @@ fun BabyPingHomeScreen(
                                             )
                                         }
 
-                                        Spacer(Modifier.width(12.dp))
+                                        Spacer(modifier = Modifier.width(12.dp))
 
                                         Text(
                                             category.title,
@@ -245,9 +273,7 @@ fun BabyPingHomeScreen(
                             }
                         }
                     },
-
                     confirmButton = {},
-
                     dismissButton = {
                         TextButton(onClick = { showCategoryPicker = false }) {
                             Text("Annuler")
@@ -259,23 +285,10 @@ fun BabyPingHomeScreen(
     }
 }
 
-// -------- SMART --------
-
 private data class SmartSuggestion(
     val category: String,
     val message: String
 )
-
-private fun buildSmartSuggestion(routines: List<Routine>): SmartSuggestion? {
-    if (routines.isEmpty()) {
-        return SmartSuggestion(
-            "Quotidiens",
-            "Commence avec une routine Quotidienne 🌱"
-        )
-    }
-
-    return null
-}
 
 @Composable
 private fun SmartSuggestionCard(
@@ -286,7 +299,7 @@ private fun SmartSuggestionCard(
 
     Surface(
         shape = RoundedCornerShape(20.dp),
-        color = colors.secondaryContainer,
+        color = colors.primary.copy(alpha = 0.15f),
         modifier = Modifier
             .fillMaxWidth()
             .clickable { onClick() }
@@ -296,8 +309,11 @@ private fun SmartSuggestionCard(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Icon(Icons.Default.Lightbulb, null, tint = colors.primary)
-            Spacer(Modifier.width(12.dp))
-            Text(message)
+            Spacer(modifier = Modifier.width(12.dp))
+            Text(
+                text = message,
+                color = colors.onSurface
+            )
         }
     }
 }

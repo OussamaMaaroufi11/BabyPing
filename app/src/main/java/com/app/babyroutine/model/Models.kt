@@ -1,9 +1,9 @@
-package com.example.babyroutineapp
+package com.app.babyroutine.model
 
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-
-// -------------------- ENUMS --------------------
+import androidx.room.Entity
+import androidx.room.PrimaryKey
 
 enum class Frequency {
     DAILY,
@@ -38,11 +38,12 @@ enum class HomeTab {
     Suivi
 }
 
-// -------------------- DATA --------------------
-
+@Entity(tableName = "routines")
 data class Routine(
+    @PrimaryKey
     val id: String,
     val title: String,
+    val description: String = "",
     val time: String,
     val category: String,
     val frequency: Frequency = Frequency.DAILY,

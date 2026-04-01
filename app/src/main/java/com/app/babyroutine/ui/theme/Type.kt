@@ -1,4 +1,4 @@
-package com.example.babyroutineapp.ui.theme
+package com.app.babyroutine.ui.theme
 
 import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle

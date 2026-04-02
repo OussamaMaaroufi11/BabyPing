@@ -13,10 +13,10 @@ interface RoutineDao {
     @Query("SELECT * FROM routines ORDER BY time ASC")
     fun getAllRoutines(): Flow<List<Routine>>
 
-    @Insert(onConflict = OnConflictStrategy.Companion.REPLACE)
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsertRoutine(routine: Routine)
 
-    @Insert(onConflict = OnConflictStrategy.Companion.REPLACE)
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertAll(routines: List<Routine>)
 
     @Query("DELETE FROM routines WHERE id = :routineId")

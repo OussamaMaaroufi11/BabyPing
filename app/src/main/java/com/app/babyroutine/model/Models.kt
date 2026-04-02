@@ -8,29 +8,13 @@ import androidx.room.PrimaryKey
 enum class Frequency {
     DAILY,
     SOME_DAYS,
-    ONCE;
-
-    fun toDisplayText(): String {
-        return when (this) {
-            DAILY -> "Tous les jours"
-            SOME_DAYS -> "Certains jours"
-            ONCE -> "Une seule fois"
-        }
-    }
+    ONCE
 }
 
 enum class Priority {
     LOW,
     MEDIUM,
-    HIGH;
-
-    fun toDisplayText(): String {
-        return when (this) {
-            LOW -> "Faible"
-            MEDIUM -> "Moyenne"
-            HIGH -> "Élevée"
-        }
-    }
+    HIGH
 }
 
 enum class HomeTab {
@@ -47,11 +31,24 @@ data class Routine(
     val time: String,
     val category: String,
     val frequency: Frequency = Frequency.DAILY,
-    val priority: Priority = Priority.MEDIUM
+    val priority: Priority = Priority.MEDIUM,
+    val latitude: Double? = null,
+    val longitude: Double? = null,
+    val radius: Float = 100f,
+    val locationName: String? = null,
+
+    val notificationsEnabled: Boolean = true
 )
 
 data class HomeCategory(
     val title: String,
     val icon: ImageVector,
     val bgColor: Color
+)
+
+data class RoutineLocation(
+    val latitude: Double,
+    val longitude: Double,
+    val radius: Float,
+    val locationName: String? = null
 )

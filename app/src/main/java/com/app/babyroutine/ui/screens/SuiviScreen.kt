@@ -124,6 +124,13 @@ fun SuiviScreen(
                 progress = progress
             )
 
+            Spacer(modifier = Modifier.height(12.dp))
+
+            MotivationCard(
+                total = total,
+                done = done
+            )
+
             Spacer(modifier = Modifier.height(20.dp))
 
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -227,6 +234,35 @@ private fun ProgressCard(
                 }
             }
         }
+    }
+}
+
+@Composable
+fun MotivationCard(
+    total: Int,
+    done: Int
+) {
+    val colors = MaterialTheme.colorScheme
+    val message = getMotivationMessage(total, done)
+
+    Surface(
+        shape = RoundedCornerShape(18.dp),
+        color = colors.surface,
+        shadowElevation = 6.dp,
+        modifier = Modifier
+            .fillMaxWidth()
+            .border(
+                width = 1.dp,
+                color = colors.outline.copy(alpha = 0.18f),
+                shape = RoundedCornerShape(18.dp)
+            )
+    ) {
+        Text(
+            text = message,
+            color = colors.onSurface,
+            modifier = Modifier.padding(16.dp),
+            style = MaterialTheme.typography.bodyMedium
+        )
     }
 }
 
@@ -376,4 +412,17 @@ private fun formatFrenchDate(date: LocalDate): String {
     return date.format(
         DateTimeFormatter.ofPattern("dd MMMM yyyy", Locale.FRENCH)
     )
+}
+//
+fun getMotivationMessage(total: Int, done: Int): String {
+    val percent = if (total == 0) 0 else (done * 100) / total
+
+    return when {
+        total == 0 -> "Ajoute quelques routines pour commencer ton suivi 🌱"
+        done == 0 -> "Commence doucement, chaque routine compte aujourd’hui 💪"
+        percent < 50 -> "Bon début, continue comme ça 🙂"
+        percent < 80 -> "Très belle progression aujourd’hui 🚀"
+        percent < 100 -> "Tu es presque au maximum, bravo 💪"
+        else -> "Excellent travail, toutes les routines sont terminées 🎉"
+    }
 }

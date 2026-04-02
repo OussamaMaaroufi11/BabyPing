@@ -181,7 +181,13 @@ fun BabyPingHomeScreen(
                     Box(modifier = Modifier.weight(1f)) {
                         ReminderList(
                             routines = routines,
-                            frequencyTextProvider = { it.frequency.toDisplayText() },
+                            frequencyTextProvider = { routine ->
+                                when (routine.frequency) {
+                                    com.app.babyroutine.model.Frequency.DAILY -> "Tous les jours"
+                                    com.app.babyroutine.model.Frequency.SOME_DAYS -> "Certains jours"
+                                    com.app.babyroutine.model.Frequency.ONCE -> "Une seule fois"
+                                }
+                            },
                             onRoutineClick = onRoutineClick
                         )
                     }

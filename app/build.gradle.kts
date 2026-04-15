@@ -60,8 +60,15 @@ dependencies {
     implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.compose.foundation)
 
+    // Geofencing / localisation
+    implementation("com.google.android.gms:play-services-location:21.3.0")
+
+    // OpenStreetMap
+    implementation("org.osmdroid:osmdroid-android:6.1.20")
+
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
+    implementation(libs.androidx.foundation)
     ksp(libs.androidx.room.compiler)
 
     testImplementation(libs.junit)

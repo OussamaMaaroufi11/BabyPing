@@ -1,18 +1,42 @@
 package com.app.babyroutine.ui.screens
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material3.*
+import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material.icons.filled.DarkMode
+import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 
@@ -25,15 +49,16 @@ fun SettingsScreen(
     onProfileClick: () -> Unit,
     onDarkModeChange: (Boolean) -> Unit,
     onNotificationsChange: (Boolean) -> Unit,
+    onNotificationsClick: () -> Unit,
     onBack: () -> Unit
 ) {
     val colors = MaterialTheme.colorScheme
 
     val backgroundBrush = Brush.verticalGradient(
-        listOf(
+        colors = listOf(
             colors.background,
             colors.surface,
-            colors.surfaceVariant.copy(alpha = 0.4f),
+            colors.surfaceVariant.copy(alpha = 0.28f),
             colors.background
         )
     )
@@ -43,13 +68,24 @@ fun SettingsScreen(
         topBar = {
             TopAppBar(
                 title = {
-                    Text("Paramètres", fontWeight = FontWeight.SemiBold)
+                    Text(
+                        text = "Paramètres",
+                        fontWeight = FontWeight.SemiBold
+                    )
                 },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, null)
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Retour"
+                        )
                     }
-                }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = colors.background,
+                    titleContentColor = colors.onSurface,
+                    navigationIconContentColor = colors.onSurface
+                )
             )
         }
     ) { innerPadding ->
@@ -59,65 +95,85 @@ fun SettingsScreen(
                 .fillMaxSize()
                 .background(backgroundBrush)
                 .padding(innerPadding)
-                .padding(16.dp),
+                .padding(horizontal = 16.dp, vertical = 14.dp),
             verticalArrangement = Arrangement.spacedBy(18.dp)
         ) {
+            ProfileCard(
+                profileName = profileName,
+                onClick = onProfileClick
+            )
 
-            Surface(
-                shape = RoundedCornerShape(24.dp),
-                color = colors.surface,
-                shadowElevation = 10.dp,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable { onProfileClick() }
-            ) {
-                Row(
-                    modifier = Modifier.padding(16.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-
-                    Box(
-                        modifier = Modifier
-                            .size(50.dp)
-                            .background(
-                                colors.secondary.copy(alpha = 0.2f),
-                                CircleShape
-                            ),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(Icons.Default.Person, null, tint = colors.primary)
-                    }
-
-                    Spacer(modifier = Modifier.width(12.dp))
-
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text("Profil", fontWeight = FontWeight.SemiBold)
-                        Text(profileName, color = colors.onSurfaceVariant)
-                    }
-
-                    Icon(Icons.Default.ChevronRight, null)
-                }
-            }
-
-            SettingsSwitchItem(
+            SwitchCard(
                 icon = Icons.Default.DarkMode,
                 title = "Mode sombre",
                 checked = isDarkMode,
                 onCheckedChange = onDarkModeChange
             )
 
-            SettingsSwitchItem(
-                icon = Icons.Default.Notifications,
-                title = "Notifications",
-                checked = notificationsEnabled,
-                onCheckedChange = onNotificationsChange
+            NotificationsCard(
+                notificationsEnabled = notificationsEnabled,
+                onCardClick = onNotificationsClick,
+                onSwitchChange = onNotificationsChange
             )
         }
     }
 }
 
 @Composable
-private fun SettingsSwitchItem(
+private fun ProfileCard(
+    profileName: String,
+    onClick: () -> Unit
+) {
+    val colors = MaterialTheme.colorScheme
+
+    Surface(
+        shape = RoundedCornerShape(24.dp),
+        color = colors.surface,
+        shadowElevation = 8.dp,
+        modifier = Modifier
+            .fillMaxWidth()
+            .border(
+                width = 1.dp,
+                color = colors.outline.copy(alpha = 0.18f),
+                shape = RoundedCornerShape(24.dp)
+            )
+            .clickable { onClick() }
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 18.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            CircleIcon(
+                icon = Icons.Default.Person
+            )
+
+            Spacer(modifier = Modifier.size(14.dp))
+
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = "Profil",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    color = colors.onSurface
+                )
+                Text(
+                    text = profileName,
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = colors.onSurfaceVariant
+                )
+            }
+
+            Icon(
+                imageVector = Icons.Default.ChevronRight,
+                contentDescription = "Ouvrir profil",
+                tint = colors.onSurface
+            )
+        }
+    }
+}
+
+@Composable
+private fun SwitchCard(
     icon: androidx.compose.ui.graphics.vector.ImageVector,
     title: String,
     checked: Boolean,
@@ -128,30 +184,27 @@ private fun SettingsSwitchItem(
     Surface(
         shape = RoundedCornerShape(24.dp),
         color = colors.surface,
-        shadowElevation = 6.dp,
-        modifier = Modifier.fillMaxWidth()
+        shadowElevation = 8.dp,
+        modifier = Modifier
+            .fillMaxWidth()
+            .border(
+                width = 1.dp,
+                color = colors.outline.copy(alpha = 0.18f),
+                shape = RoundedCornerShape(24.dp)
+            )
     ) {
         Row(
-            modifier = Modifier.padding(16.dp),
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 18.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
+            CircleIcon(icon = icon)
 
-            Box(
-                modifier = Modifier
-                    .size(44.dp)
-                    .background(
-                        colors.secondary.copy(alpha = 0.2f),
-                        CircleShape
-                    ),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(icon, null, tint = colors.primary)
-            }
-
-            Spacer(modifier = Modifier.width(12.dp))
+            Spacer(modifier = Modifier.size(14.dp))
 
             Text(
                 text = title,
+                style = MaterialTheme.typography.titleMedium,
+                color = colors.onSurface,
                 modifier = Modifier.weight(1f)
             )
 
@@ -159,10 +212,85 @@ private fun SettingsSwitchItem(
                 checked = checked,
                 onCheckedChange = onCheckedChange,
                 colors = SwitchDefaults.colors(
-                    checkedThumbColor = colors.primary,
-                    checkedTrackColor = colors.primary.copy(alpha = 0.5f)
+                    checkedThumbColor = Color.White,
+                    checkedTrackColor = colors.primary.copy(alpha = 0.75f),
+                    uncheckedThumbColor = Color.White,
+                    uncheckedTrackColor = colors.outline.copy(alpha = 0.45f)
                 )
             )
         }
+    }
+}
+
+@Composable
+private fun NotificationsCard(
+    notificationsEnabled: Boolean,
+    onCardClick: () -> Unit,
+    onSwitchChange: (Boolean) -> Unit
+) {
+    val colors = MaterialTheme.colorScheme
+
+    Surface(
+        shape = RoundedCornerShape(24.dp),
+        color = colors.surface,
+        shadowElevation = 8.dp,
+        modifier = Modifier
+            .fillMaxWidth()
+            .border(
+                width = 1.dp,
+                color = colors.outline.copy(alpha = 0.18f),
+                shape = RoundedCornerShape(24.dp)
+            )
+            .clickable { onCardClick() }
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 18.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            CircleIcon(icon = Icons.Default.Notifications)
+
+            Spacer(modifier = Modifier.size(14.dp))
+
+            Text(
+                text = "Notifications",
+                style = MaterialTheme.typography.titleMedium,
+                color = colors.onSurface,
+                modifier = Modifier.weight(1f)
+            )
+
+            Switch(
+                checked = notificationsEnabled,
+                onCheckedChange = onSwitchChange,
+                colors = SwitchDefaults.colors(
+                    checkedThumbColor = Color.White,
+                    checkedTrackColor = colors.primary.copy(alpha = 0.75f),
+                    uncheckedThumbColor = Color.White,
+                    uncheckedTrackColor = colors.outline.copy(alpha = 0.45f)
+                )
+            )
+        }
+    }
+}
+
+@Composable
+private fun CircleIcon(
+    icon: androidx.compose.ui.graphics.vector.ImageVector
+) {
+    val colors = MaterialTheme.colorScheme
+
+    Box(
+        modifier = Modifier
+            .size(48.dp)
+            .background(
+                color = colors.secondary.copy(alpha = 0.18f),
+                shape = CircleShape
+            ),
+        contentAlignment = Alignment.Center
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = null,
+            tint = colors.primary
+        )
     }
 }

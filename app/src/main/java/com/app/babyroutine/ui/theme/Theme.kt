@@ -8,56 +8,59 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 
 private val LightColors = lightColorScheme(
-    primary = Color(0xFF57C8D4),
+    primary = BabyBlue,
     onPrimary = Color(0xFF062B30),
 
-    secondary = Color(0xFF8ED9A8),
+    secondary = BabyMint,
     onSecondary = Color(0xFF102318),
 
-    secondaryContainer = Color(0xFFAEE8A8),
-    onSecondaryContainer = Color(0xFF1D1B20),
+    secondaryContainer = Color(0xFFC8F3D2),
+    onSecondaryContainer = Color(0xFF173222),
 
-    tertiary = Color(0xFFF3E9FF),
-    onTertiary = Color(0xFF2A2230),
+    tertiary = Color(0xFFF8EEFF),
+    onTertiary = Color(0xFF30263A),
 
-    background = Color(0xFFF7F2FF),
-    onBackground = Color(0xFF1F1B24),
+    background = LightBg,
+    onBackground = Color(0xFF1F2430),
 
-    surface = Color(0xFFFFFFFF),
-    onSurface = Color(0xFF1F1B24),
+    surface = Color.White,
+    onSurface = Color(0xFF1F2430),
 
-    surfaceVariant = Color(0xFFF2DDCC),
-    onSurfaceVariant = Color(0xFF5A5361),
+    surfaceVariant = LightSurfaceSoft,
+    onSurfaceVariant = Color(0xFF626B7A),
 
-    outline = Color(0xFFD0C4BE)
+    outline = LightOutline,
+
+    error = Color(0xFFFF6B6B),
+    onError = Color.White
 )
 
 private val DarkColors = darkColorScheme(
-    primary = Color(0xFF00E5FF),
-    onPrimary = Color.Black,
+    primary = BabyBlue,
+    onPrimary = Color(0xFF04131A),
 
-    secondary = Color(0xFF7CFFB2),
-    onSecondary = Color.Black,
+    secondary = BabyMint,
+    onSecondary = Color(0xFF0A1B12),
 
-    secondaryContainer = Color(0xFF23324A),
-    onSecondaryContainer = Color(0xFFEAF2FF),
+    secondaryContainer = Color(0xFF243B33),
+    onSecondaryContainer = Color(0xFFDDF8E7),
 
-    background = Color(0xFF101827),
-    onBackground = Color(0xFFEAF2FF),
+    tertiary = BabyLavender,
+    onTertiary = Color(0xFF151028),
 
-    surface = Color(0xFF182235),
-    onSurface = Color(0xFFEAF2FF),
+    background = DarkBg,
+    onBackground = DarkTextPrimary,
 
-    surfaceVariant = Color(0xFF22314A),
-    onSurfaceVariant = Color(0xFFBFD0EA),
+    surface = DarkSurface,
+    onSurface = DarkTextPrimary,
 
-    outline = Color(0xFF415574),
+    surfaceVariant = DarkSurfaceSoft,
+    onSurfaceVariant = DarkTextSecondary,
 
-    tertiary = Color(0xFF8F7CFF),
-    onTertiary = Color.White,
+    outline = DarkOutline,
 
-    error = Color(0xFFFF6B6B),
-    onError = Color.Black
+    error = Color(0xFFFF7B7B),
+    onError = Color(0xFF2A0C0C)
 )
 
 @Composable

@@ -3,8 +3,10 @@ package com.app.babyroutine.ui.screens
 import android.app.TimePickerDialog
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -13,16 +15,20 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.AccessTime
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -53,6 +59,7 @@ import com.app.babyroutine.R
 import com.app.babyroutine.model.Frequency
 import com.app.babyroutine.model.Priority
 import com.app.babyroutine.model.Routine
+import com.app.babyroutine.model.RoutineLocation
 import java.util.Calendar
 import java.util.UUID
 
@@ -61,6 +68,8 @@ import java.util.UUID
 fun AddRoutineScreen(
     category: String,
     initialRoutine: Routine?,
+    selectedLocation: RoutineLocation?,
+    onPickLocation: () -> Unit,
     onSave: (Routine) -> Unit,
     onBack: () -> Unit
 ) {
@@ -69,12 +78,16 @@ fun AddRoutineScreen(
     val listState = rememberLazyListState()
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
 
+    val categories = listOf("Quotidiens", "Programmes")
+
     var title by remember { mutableStateOf(initialRoutine?.title ?: "") }
     var description by remember { mutableStateOf(initialRoutine?.description ?: "") }
+    var selectedCategory by remember { mutableStateOf(initialRoutine?.category ?: category) }
     var time by remember { mutableStateOf(initialRoutine?.time ?: "") }
     var frequency by remember { mutableStateOf(initialRoutine?.frequency ?: Frequency.DAILY) }
     var priority by remember { mutableStateOf(initialRoutine?.priority ?: Priority.HIGH) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
+    var categoryExpanded by remember { mutableStateOf(false) }
 
     fun openTimePicker() {
         val calendar = Calendar.getInstance()
@@ -94,7 +107,7 @@ fun AddRoutineScreen(
         colors = listOf(
             colors.background,
             colors.surface,
-            colors.surfaceVariant.copy(alpha = 0.45f),
+            colors.surfaceVariant.copy(alpha = 0.35f),
             colors.background
         )
     )
@@ -107,7 +120,7 @@ fun AddRoutineScreen(
                 title = {
                     Text(
                         text = if (initialRoutine == null) {
-                            "Création d'une nouvelle routine"
+                            "Création d’une nouvelle routine"
                         } else {
                             "Modifier la routine"
                         },
@@ -115,10 +128,13 @@ fun AddRoutineScreen(
                     )
                 },
                 navigationIcon = {
-                    IconButton(onClick = onBack) {
+                    IconButton(
+                        onClick = onBack
+                    ) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Retour"
+                            contentDescription = "Retour",
+                            tint = colors.onSurface
                         )
                     }
                 },
@@ -131,7 +147,6 @@ fun AddRoutineScreen(
             )
         }
     ) { innerPadding ->
-
         LazyColumn(
             state = listState,
             modifier = Modifier
@@ -140,7 +155,7 @@ fun AddRoutineScreen(
                 .padding(innerPadding)
                 .padding(horizontal = 16.dp)
                 .imePadding(),
-            contentPadding = PaddingValues(bottom = 24.dp),
+            contentPadding = PaddingValues(bottom = 28.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
             item {
@@ -149,7 +164,7 @@ fun AddRoutineScreen(
                     contentDescription = "Bannière routines",
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(150.dp)
+                        .height(155.dp)
                         .clip(RoundedCornerShape(20.dp))
                 )
             }
@@ -164,19 +179,13 @@ fun AddRoutineScreen(
                 ) {
                     Column(
                         modifier = Modifier.padding(18.dp),
-                        verticalArrangement = Arrangement.spacedBy(14.dp)
+                        verticalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
                         Text(
                             text = "Entrez les informations",
                             fontWeight = FontWeight.Bold,
                             color = colors.onSurface,
-                            style = MaterialTheme.typography.titleMedium
-                        )
-
-                        Text(
-                            text = "Catégorie : $category",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = colors.onSurfaceVariant
+                            style = MaterialTheme.typography.titleLarge
                         )
 
                         OutlinedTextField(
@@ -186,6 +195,7 @@ fun AddRoutineScreen(
                                 errorMessage = null
                             },
                             label = { Text("Nom de la routine") },
+                            placeholder = { Text("Veuillez saisir le nom de la routine...") },
                             modifier = Modifier.fillMaxWidth(),
                             singleLine = true,
                             isError = errorMessage != null && title.isBlank(),
@@ -194,94 +204,189 @@ fun AddRoutineScreen(
 
                         OutlinedTextField(
                             value = description,
-                            onValueChange = {
-                                description = it
-                            },
+                            onValueChange = { description = it },
                             label = { Text("Description") },
+                            placeholder = { Text("Veuillez saisir la description...") },
                             modifier = Modifier.fillMaxWidth(),
                             minLines = 2,
                             maxLines = 3,
                             shape = RoundedCornerShape(18.dp)
                         )
 
-                        OutlinedTextField(
-                            value = time,
-                            onValueChange = {},
-                            readOnly = true,
-                            label = { Text("Heure") },
-                            trailingIcon = {
-                                IconButton(onClick = { openTimePicker() }) {
-                                    Icon(
-                                        imageVector = Icons.Default.AccessTime,
-                                        contentDescription = "Choisir l'heure",
-                                        tint = colors.primary
-                                    )
+                        Column {
+                            Text(
+                                text = "Horaires",
+                                fontWeight = FontWeight.SemiBold,
+                                color = colors.onSurface,
+                                modifier = Modifier.padding(bottom = 8.dp)
+                            )
+
+                            OutlinedTextField(
+                                value = time,
+                                onValueChange = {},
+                                readOnly = true,
+                                placeholder = { Text("--:--") },
+                                trailingIcon = {
+                                    IconButton(onClick = { openTimePicker() }) {
+                                        Icon(
+                                            imageVector = Icons.Default.AccessTime,
+                                            contentDescription = "Choisir l'heure",
+                                            tint = colors.primary
+                                        )
+                                    }
+                                },
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable { openTimePicker() },
+                                isError = errorMessage != null && time.isBlank(),
+                                shape = RoundedCornerShape(18.dp)
+                            )
+                        }
+
+                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Text(
+                                text = "Périodicité",
+                                fontWeight = FontWeight.SemiBold,
+                                color = colors.onSurface
+                            )
+
+                            FrequencyRadio(
+                                label = "Tous les jours",
+                                selected = frequency == Frequency.DAILY,
+                                onSelect = {
+                                    frequency = Frequency.DAILY
+                                    errorMessage = null
                                 }
-                            },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable { openTimePicker() },
-                            isError = errorMessage != null && time.isBlank(),
-                            shape = RoundedCornerShape(18.dp)
-                        )
-
-                        Text(
-                            text = "Fréquence",
-                            fontWeight = FontWeight.SemiBold,
-                            color = colors.onSurface
-                        )
-
-                        FrequencyRadio(
-                            label = "Tous les jours",
-                            selected = frequency == Frequency.DAILY,
-                            onSelect = {
-                                frequency = Frequency.DAILY
-                                errorMessage = null
-                            }
-                        )
-
-                        FrequencyRadio(
-                            label = "Certains jours",
-                            selected = frequency == Frequency.SOME_DAYS,
-                            onSelect = {
-                                frequency = Frequency.SOME_DAYS
-                                errorMessage = null
-                            }
-                        )
-
-                        FrequencyRadio(
-                            label = "Une seule fois",
-                            selected = frequency == Frequency.ONCE,
-                            onSelect = {
-                                frequency = Frequency.ONCE
-                                errorMessage = null
-                            }
-                        )
-
-                        Text(
-                            text = "Priorité",
-                            fontWeight = FontWeight.SemiBold,
-                            color = colors.onSurface
-                        )
-
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            PriorityRadio(
-                                label = "Faible",
-                                selected = priority == Priority.LOW,
-                                onSelect = { priority = Priority.LOW }
                             )
-                            Spacer(modifier = Modifier.width(10.dp))
-                            PriorityRadio(
-                                label = "Moyenne",
-                                selected = priority == Priority.MEDIUM,
-                                onSelect = { priority = Priority.MEDIUM }
+
+                            FrequencyRadio(
+                                label = "Certains jours",
+                                selected = frequency == Frequency.SOME_DAYS,
+                                onSelect = {
+                                    frequency = Frequency.SOME_DAYS
+                                    errorMessage = null
+                                }
                             )
-                            Spacer(modifier = Modifier.width(10.dp))
-                            PriorityRadio(
-                                label = "Élevée",
-                                selected = priority == Priority.HIGH,
-                                onSelect = { priority = Priority.HIGH }
+
+                            FrequencyRadio(
+                                label = "Une seule fois",
+                                selected = frequency == Frequency.ONCE,
+                                onSelect = {
+                                    frequency = Frequency.ONCE
+                                    errorMessage = null
+                                }
                             )
+                        }
+
+                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Text(
+                                text = "Priorité",
+                                fontWeight = FontWeight.SemiBold,
+                                color = colors.onSurface
+                            )
+
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                PriorityRadio(
+                                    label = "Faible",
+                                    selected = priority == Priority.LOW,
+                                    onSelect = { priority = Priority.LOW }
+                                )
+                                Spacer(modifier = Modifier.width(10.dp))
+                                PriorityRadio(
+                                    label = "Moyenne",
+                                    selected = priority == Priority.MEDIUM,
+                                    onSelect = { priority = Priority.MEDIUM }
+                                )
+                                Spacer(modifier = Modifier.width(10.dp))
+                                PriorityRadio(
+                                    label = "Élevée",
+                                    selected = priority == Priority.HIGH,
+                                    onSelect = { priority = Priority.HIGH }
+                                )
+                            }
+                        }
+
+                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Text(
+                                text = "Lieu de déclenchement",
+                                fontWeight = FontWeight.Bold,
+                                color = colors.onSurface,
+                                style = MaterialTheme.typography.titleMedium
+                            )
+
+                            Surface(
+                                color = if (initialRoutine != null || selectedLocation != null) {
+                                    colors.secondaryContainer.copy(alpha = 0.55f)
+                                } else {
+                                    colors.surfaceVariant.copy(alpha = 0.45f)
+                                },
+                                shape = RoundedCornerShape(22.dp),
+                                shadowElevation = 4.dp,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .border(
+                                        width = 1.dp,
+                                        color = colors.outline.copy(alpha = 0.12f),
+                                        shape = RoundedCornerShape(22.dp)
+                                    )
+                            ) {
+                                Column(
+                                    modifier = Modifier.padding(14.dp),
+                                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Icon(
+                                            imageVector = Icons.Default.LocationOn,
+                                            contentDescription = null,
+                                            tint = colors.primary
+                                        )
+                                        Spacer(modifier = Modifier.width(8.dp))
+                                        Text(
+                                            text = if (selectedLocation != null) {
+                                                selectedLocation.locationName ?: "Lieu sélectionné"
+                                            } else {
+                                                "Aucun lieu sélectionné"
+                                            },
+                                            fontWeight = FontWeight.Medium,
+                                            color = colors.onSurface
+                                        )
+                                    }
+
+                                    if (selectedLocation != null) {
+                                        Text(
+                                            text = "Latitude : %.5f".format(selectedLocation.latitude),
+                                            color = colors.onSurfaceVariant
+                                        )
+                                        Text(
+                                            text = "Longitude : %.5f".format(selectedLocation.longitude),
+                                            color = colors.onSurfaceVariant
+                                        )
+                                        Text(
+                                            text = "Rayon : ${selectedLocation.radius.toInt()} m",
+                                            color = colors.onSurfaceVariant
+                                        )
+                                    } else {
+                                        Text(
+                                            text = "Choisissez un lieu sur la carte pour activer le déclenchement contextuel.",
+                                            color = colors.onSurfaceVariant
+                                        )
+                                    }
+
+                                    Button(
+                                        onClick = onPickLocation,
+                                        shape = RoundedCornerShape(20.dp),
+                                        modifier = Modifier.fillMaxWidth()
+                                    ) {
+                                        Text(
+                                            text = if (selectedLocation == null) {
+                                                "Choisir un lieu sur la carte"
+                                            } else {
+                                                "Modifier le lieu"
+                                            }
+                                        )
+                                    }
+                                }
+                            }
                         }
 
                         if (errorMessage != null) {
@@ -294,8 +399,8 @@ fun AddRoutineScreen(
 
                         Button(
                             onClick = {
-                                if (title.isBlank() || time.isBlank()) {
-                                    errorMessage = "Veuillez remplir le nom et l'heure."
+                                if (title.isBlank() || time.isBlank() || selectedCategory.isBlank()) {
+                                    errorMessage = "Veuillez remplir le nom, la catégorie et l'heure."
                                     return@Button
                                 }
 
@@ -307,29 +412,49 @@ fun AddRoutineScreen(
                                         title = title.trim(),
                                         description = description.trim(),
                                         time = time,
-                                        category = category,
+                                        category = selectedCategory,
                                         frequency = frequency,
-                                        priority = priority
+                                        priority = priority,
+                                        latitude = selectedLocation?.latitude ?: initialRoutine?.latitude,
+                                        longitude = selectedLocation?.longitude ?: initialRoutine?.longitude,
+                                        radius = selectedLocation?.radius ?: initialRoutine?.radius ?: 100f,
+                                        locationName = selectedLocation?.locationName ?: initialRoutine?.locationName,
+                                        notificationsEnabled = initialRoutine?.notificationsEnabled ?: true
                                     )
                                 )
                             },
                             shape = RoundedCornerShape(28.dp),
                             colors = ButtonDefaults.buttonColors(
-                                containerColor = colors.primary,
+                                containerColor = Color(0xFF9EE6B1),
                                 contentColor = Color.Black
                             ),
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .height(54.dp)
+                                .height(56.dp)
                         ) {
                             Text(
-                                text = if (initialRoutine == null) {
-                                    "Sauvegarder"
-                                } else {
-                                    "Mettre à jour"
-                                },
+                                text = "Sauvegarder",
                                 fontWeight = FontWeight.SemiBold
                             )
+                        }
+
+                        if (initialRoutine != null) {
+                            Button(
+                                onClick = onBack,
+                                shape = RoundedCornerShape(28.dp),
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = Color(0xFFE98297),
+                                    contentColor = Color.Black
+                                ),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(56.dp)
+                            ) {
+                                Text(
+                                    text = "Abandonner",
+                                    fontWeight = FontWeight.SemiBold
+                                )
+                            }
                         }
                     }
                 }

@@ -4,6 +4,7 @@ import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -49,6 +50,7 @@ import java.util.Locale
 @Composable
 fun SuiviScreen(
     onBack: () -> Unit,
+    onSeeAllClick: () -> Unit,
     selectedTab: HomeTab = HomeTab.Suivi,
     onTabSelected: (HomeTab) -> Unit = {},
     total: Int,
@@ -142,7 +144,8 @@ fun SuiviScreen(
                 Spacer(modifier = Modifier.weight(1f))
                 Text(
                     text = "TOUT VOIR",
-                    color = colors.onSurfaceVariant
+                    color = colors.onSurfaceVariant,
+                    modifier = Modifier.clickable { onSeeAllClick() }
                 )
             }
 

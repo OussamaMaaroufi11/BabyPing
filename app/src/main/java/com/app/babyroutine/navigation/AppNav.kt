@@ -3,6 +3,7 @@ package com.app.babyroutine.navigation
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
@@ -10,25 +11,33 @@ import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshots.SnapshotStateList
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import com.app.babyroutine.ui.viewmodel.RoutineViewModel
+import com.app.babyroutine.location.GeofenceManager
 import com.app.babyroutine.model.Frequency
 import com.app.babyroutine.model.HomeTab
+import com.app.babyroutine.model.RoutineLocation
+import com.app.babyroutine.notifications.NotificationHelper
 import com.app.babyroutine.ui.screens.AddRoutineScreen
 import com.app.babyroutine.ui.screens.BabyPingHomeScreen
 import com.app.babyroutine.ui.screens.CategoryListScreen
+import com.app.babyroutine.ui.screens.IgnoredRemindersScreen
+import com.app.babyroutine.ui.screens.MapPickerScreen
+import com.app.babyroutine.ui.screens.NotificationSettingsScreen
 import com.app.babyroutine.ui.screens.ProfileScreen
+import com.app.babyroutine.ui.screens.RoutineOptionsScreen
 import com.app.babyroutine.ui.screens.SettingsScreen
+import com.app.babyroutine.ui.screens.StatisticsScreen
 import com.app.babyroutine.ui.screens.SuiviScreen
+import com.app.babyroutine.ui.viewmodel.RoutineViewModel
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
-import kotlin.collections.filter
 
 sealed class Screen(val route: String) {
     data object Home : Screen("home")
@@ -41,9 +50,18 @@ sealed class Screen(val route: String) {
         fun route(id: String): String = "editRoutine/$id"
     }
 
+    data object RoutineOptions : Screen("routineOptions/{id}") {
+        fun route(id: String): String = "routineOptions/$id"
+    }
+
+    data object MapPicker : Screen("mapPicker")
+
     data object Suivi : Screen("suivi")
     data object Settings : Screen("settings")
     data object Profile : Screen("profile")
+    data object Statistics : Screen("statistics")
+    data object IgnoredReminders : Screen("ignoredReminders")
+    data object NotificationSettings : Screen("notificationSettings")
 
     data object CategoryList : Screen("category/{category}") {
         fun route(category: String): String = "category/$category"
@@ -70,6 +88,7 @@ fun AppRoot(
     routineViewModel: RoutineViewModel = viewModel()
 ) {
     val navController = rememberNavController()
+    val context = LocalContext.current
 
     val notificationsEnabled = remember { mutableStateOf(true) }
 
@@ -83,6 +102,10 @@ fun AppRoot(
         mutableStateMapOf<String, SnapshotStateList<String>>()
     }
 
+    val ignoredRemindersToday = remember { mutableStateListOf<String>() }
+    val soundEnabled = remember { mutableStateOf(true) }
+    val vibrationEnabled = remember { mutableStateOf(true) }
+
     val currentDateKey = todayKey()
     val doneTodayIds = doneByDate.getOrPut(currentDateKey) {
         mutableStateListOf()
@@ -90,14 +113,29 @@ fun AppRoot(
 
     val totalToday = routines.size
     val doneToday = doneTodayIds.size.coerceAtMost(totalToday)
-    val progress =
-        if (totalToday == 0) 0f else doneToday.toFloat() / totalToday.toFloat()
+    val progress = if (totalToday == 0) 0f else doneToday.toFloat() / totalToday.toFloat()
+    val completedPercent = if (totalToday == 0) 0 else ((doneToday * 100) / totalToday)
+
+    val pendingPickedLocation = remember { mutableStateOf<RoutineLocation?>(null) }
+
+    LaunchedEffect(routines) {
+        val geofenceManager = GeofenceManager(context)
+
+        routines.forEach { routine ->
+            if (
+                routine.notificationsEnabled &&
+                routine.latitude != null &&
+                routine.longitude != null
+            ) {
+                geofenceManager.addGeofenceForRoutine(routine)
+            }
+        }
+    }
 
     NavHost(
         navController = navController,
         startDestination = Screen.Home.route
     ) {
-
         composable(Screen.Home.route) {
             BabyPingHomeScreen(
                 routines = routines,
@@ -109,13 +147,14 @@ fun AppRoot(
                     }
                 },
                 onNewReminderClick = { category ->
+                    pendingPickedLocation.value = null
                     navController.navigate(Screen.AddRoutine.route(category))
                 },
                 onCategoryClick = { category ->
                     navController.navigate(Screen.CategoryList.route(category))
                 },
                 onRoutineClick = { routine ->
-                    navController.navigate(Screen.EditRoutine.route(routine.id))
+                    navController.navigate(Screen.RoutineOptions.route(routine.id))
                 },
                 onSettingsClick = {
                     navController.navigate(Screen.Settings.route)
@@ -143,12 +182,10 @@ fun AppRoot(
                 },
                 onBack = { navController.popBackStack() },
                 onQuit = {
-                    navController.popBackStack(
-                        Screen.Home.route,
-                        inclusive = false
-                    )
+                    navController.popBackStack(Screen.Home.route, inclusive = false)
                 },
                 onAdd = {
+                    pendingPickedLocation.value = null
                     navController.navigate(Screen.AddRoutine.route(category))
                 },
                 onEdit = { routineId ->
@@ -166,14 +203,14 @@ fun AppRoot(
         composable(Screen.Suivi.route) {
             SuiviScreen(
                 onBack = { navController.popBackStack() },
+                onSeeAllClick = {
+                    navController.navigate(Screen.Statistics.route)
+                },
                 selectedTab = HomeTab.Suivi,
                 onTabSelected = { tab ->
                     when (tab) {
                         HomeTab.Home -> {
-                            navController.popBackStack(
-                                Screen.Home.route,
-                                inclusive = false
-                            )
+                            navController.popBackStack(Screen.Home.route, inclusive = false)
                         }
                         HomeTab.Suivi -> Unit
                     }
@@ -181,6 +218,66 @@ fun AppRoot(
                 total = totalToday,
                 done = doneToday,
                 progress = progress
+            )
+        }
+
+        composable(Screen.Statistics.route) {
+            StatisticsScreen(
+                onBack = { navController.popBackStack() },
+                completedPercent = completedPercent,
+                ignoredRemindersCount = ignoredRemindersToday.size,
+                onIgnoredRemindersClick = {
+                    navController.navigate(Screen.IgnoredReminders.route)
+                }
+            )
+        }
+
+        composable(Screen.IgnoredReminders.route) {
+            IgnoredRemindersScreen(
+                onBack = { navController.popBackStack() },
+                ignoredReminders = ignoredRemindersToday
+            )
+        }
+
+        composable(Screen.NotificationSettings.route) {
+            NotificationSettingsScreen(
+                onBack = { navController.popBackStack() },
+                notificationsEnabled = notificationsEnabled.value,
+                soundEnabled = soundEnabled.value,
+                vibrationEnabled = vibrationEnabled.value,
+                onNotificationsEnabledChange = { enabled ->
+                    notificationsEnabled.value = enabled
+                    NotificationHelper.createNotificationChannel(
+                        context = context,
+                        soundEnabled = soundEnabled.value,
+                        vibrationEnabled = vibrationEnabled.value
+                    )
+                },
+                onSoundEnabledChange = { enabled ->
+                    soundEnabled.value = enabled
+                    NotificationHelper.createNotificationChannel(
+                        context = context,
+                        soundEnabled = soundEnabled.value,
+                        vibrationEnabled = vibrationEnabled.value
+                    )
+                },
+                onVibrationEnabledChange = { enabled ->
+                    vibrationEnabled.value = enabled
+                    NotificationHelper.createNotificationChannel(
+                        context = context,
+                        soundEnabled = soundEnabled.value,
+                        vibrationEnabled = vibrationEnabled.value
+                    )
+                },
+                onTestNotificationClick = {
+                    if (notificationsEnabled.value) {
+                        NotificationHelper.showRoutineNotification(
+                            context = context,
+                            title = "Routine BabyPing",
+                            message = "Ceci est une notification de test pour vérifier le système."
+                        )
+                    }
+                }
             )
         }
 
@@ -198,7 +295,10 @@ fun AppRoot(
                 onNotificationsChange = { enabled ->
                     notificationsEnabled.value = enabled
                 },
-                onBack = { navController.popBackStack() }
+                onBack = { navController.popBackStack() },
+                onNotificationsClick = {
+                    navController.navigate(Screen.NotificationSettings.route)
+                }
             )
         }
 
@@ -227,11 +327,28 @@ fun AppRoot(
             AddRoutineScreen(
                 category = category,
                 initialRoutine = null,
+                selectedLocation = pendingPickedLocation.value,
+                onPickLocation = {
+                    navController.navigate(Screen.MapPicker.route)
+                },
                 onSave = { newRoutine ->
-                    routineViewModel.upsertRoutine(newRoutine)
+                    val finalRoutine = pendingPickedLocation.value?.let { pickedLocation ->
+                        newRoutine.copy(
+                            latitude = pickedLocation.latitude,
+                            longitude = pickedLocation.longitude,
+                            radius = pickedLocation.radius,
+                            locationName = pickedLocation.locationName
+                        )
+                    } ?: newRoutine
+
+                    routineViewModel.upsertRoutine(finalRoutine)
+                    pendingPickedLocation.value = null
                     navController.popBackStack()
                 },
-                onBack = { navController.popBackStack() }
+                onBack = {
+                    pendingPickedLocation.value = null
+                    navController.popBackStack()
+                }
             )
         }
 
@@ -244,18 +361,112 @@ fun AppRoot(
             val routineToEdit = routines.firstOrNull { it.id == routineId }
 
             if (routineToEdit != null) {
+                val selectedLocationForEdit = pendingPickedLocation.value ?: run {
+                    if (routineToEdit.latitude != null && routineToEdit.longitude != null) {
+                        RoutineLocation(
+                            latitude = routineToEdit.latitude,
+                            longitude = routineToEdit.longitude,
+                            radius = routineToEdit.radius,
+                            locationName = routineToEdit.locationName
+                        )
+                    } else {
+                        null
+                    }
+                }
+
                 AddRoutineScreen(
                     category = routineToEdit.category,
                     initialRoutine = routineToEdit,
+                    selectedLocation = selectedLocationForEdit,
+                    onPickLocation = {
+                        pendingPickedLocation.value = selectedLocationForEdit
+                        navController.navigate(Screen.MapPicker.route)
+                    },
                     onSave = { updatedRoutine ->
-                        routineViewModel.upsertRoutine(updatedRoutine)
+                        val finalRoutine = pendingPickedLocation.value?.let { pickedLocation ->
+                            updatedRoutine.copy(
+                                latitude = pickedLocation.latitude,
+                                longitude = pickedLocation.longitude,
+                                radius = pickedLocation.radius,
+                                locationName = pickedLocation.locationName
+                            )
+                        } ?: updatedRoutine
+
+                        routineViewModel.upsertRoutine(finalRoutine)
+                        pendingPickedLocation.value = null
                         navController.popBackStack()
                     },
-                    onBack = { navController.popBackStack() }
+                    onBack = {
+                        pendingPickedLocation.value = null
+                        navController.popBackStack()
+                    }
                 )
             } else {
                 navController.popBackStack()
             }
+        }
+
+        composable(
+            route = Screen.RoutineOptions.route,
+            arguments = listOf(navArgument("id") { type = NavType.StringType })
+        ) { backStackEntry ->
+
+            val routineId = backStackEntry.arguments?.getString("id") ?: ""
+            val routine = routines.firstOrNull { it.id == routineId }
+
+            if (routine != null) {
+                RoutineOptionsScreen(
+                    routine = routine,
+                    onBack = { navController.popBackStack() },
+                    onEdit = {
+                        navController.navigate(Screen.EditRoutine.route(routine.id))
+                    },
+                    onTrigger = {
+                        pendingPickedLocation.value =
+                            if (routine.latitude != null && routine.longitude != null) {
+                                RoutineLocation(
+                                    latitude = routine.latitude,
+                                    longitude = routine.longitude,
+                                    radius = routine.radius,
+                                    locationName = routine.locationName
+                                )
+                            } else {
+                                null
+                            }
+
+                        navController.navigate(Screen.MapPicker.route)
+                    },
+                    onDelete = {
+                        GeofenceManager(context).removeGeofenceForRoutine(routine.id)
+                        routineViewModel.deleteRoutineById(routine.id)
+                        navController.popBackStack()
+                    },
+                    onToggleNotifications = { enabled ->
+                        val updatedRoutine = routine.copy(notificationsEnabled = enabled)
+                        routineViewModel.upsertRoutine(updatedRoutine)
+
+                        val geofenceManager = GeofenceManager(context)
+                        if (enabled) {
+                            geofenceManager.addGeofenceForRoutine(updatedRoutine)
+                        } else {
+                            geofenceManager.removeGeofenceForRoutine(updatedRoutine.id)
+                        }
+                    }
+                )
+            } else {
+                navController.popBackStack()
+            }
+        }
+
+        composable(Screen.MapPicker.route) {
+            MapPickerScreen(
+                initialLocation = pendingPickedLocation.value,
+                onBack = { navController.popBackStack() },
+                onConfirmLocation = { pickedLocation ->
+                    pendingPickedLocation.value = pickedLocation
+                    navController.popBackStack()
+                }
+            )
         }
     }
 }

@@ -23,7 +23,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.selected
@@ -79,10 +78,10 @@ private fun BigBottomItem(
     val itemShape = RoundedCornerShape(18.dp)
 
     val backgroundColor =
-        if (selected) colors.secondary.copy(alpha = 0.9f)
-        else colors.surfaceVariant.copy(alpha = 0.45f)
+        if (selected) colors.secondary.copy(alpha = 0.88f)
+        else colors.surfaceVariant.copy(alpha = 0.42f)
 
-    val contentColor =
+    val iconColor =
         if (selected) Color.Black
         else colors.onSurfaceVariant
 
@@ -99,16 +98,12 @@ private fun BigBottomItem(
         modifier = Modifier
             .width(124.dp)
             .semantics { this.selected = selected }
-            .clickable(
-                role = Role.Tab,
-                onClick = onClick
-            )
+            .clickable(role = Role.Tab, onClick = onClick)
     ) {
         Box(
             modifier = Modifier
                 .size(66.dp)
-                .clip(itemShape)
-                .background(backgroundColor)
+                .background(backgroundColor, itemShape)
                 .border(
                     width = 1.dp,
                     color = borderColor,
@@ -119,7 +114,7 @@ private fun BigBottomItem(
             Icon(
                 imageVector = icon,
                 contentDescription = label,
-                tint = contentColor,
+                tint = iconColor,
                 modifier = Modifier.size(28.dp)
             )
         }

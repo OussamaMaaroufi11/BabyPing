@@ -41,9 +41,15 @@ import androidx.compose.ui.unit.times
 @Composable
 fun IgnoredRemindersScreen(
     onBack: () -> Unit,
-    ignoredReminders: List<String>
+    ignoredReminders: List<String>,
+    ignoredYesterdayCount: Int,
+    totalReceivedCount: Int,
+    ignoredPerDay: List<Int>
 ) {
     val colors = MaterialTheme.colorScheme
+    val safeIgnoredPerDay = ignoredPerDay.take(7).let {
+        if (it.size == 7) it else List(7) { index -> it.getOrElse(index) { 0 } }
+    }
 
     val backgroundBrush = Brush.verticalGradient(
         colors = listOf(
@@ -53,22 +59,6 @@ fun IgnoredRemindersScreen(
             colors.background
         )
     )
-
-    val hasRealData = ignoredReminders.isNotEmpty()
-
-    val displayReminders = if (hasRealData) {
-        ignoredReminders.take(3)
-    } else {
-        listOf(
-            "Donner le biberon au bébé",
-            "Faire une petite balade",
-            "Rendez-vous chez le pédiatre"
-        )
-    }
-
-    val ignoredCount = if (hasRealData) ignoredReminders.size else 2
-    val yesterdayCount = if (hasRealData) (ignoredReminders.size - 1).coerceAtLeast(0) else 3
-    val receivedCount = if (hasRealData) ignoredReminders.size + 5 else 7
 
     Scaffold(
         containerColor = colors.background,
@@ -105,11 +95,7 @@ fun IgnoredRemindersScreen(
             verticalArrangement = Arrangement.spacedBy(18.dp)
         ) {
             Text(
-                text = if (hasRealData) {
-                    "Détails et analyse de cette semaine"
-                } else {
-                    "Aperçu et démonstration"
-                },
+                text = "Détails et analyse de cette semaine",
                 style = MaterialTheme.typography.bodyLarge,
                 color = colors.onSurfaceVariant
             )
@@ -125,9 +111,9 @@ fun IgnoredRemindersScreen(
             ) {
                 SmallSummaryCard(
                     modifier = Modifier.weight(1f),
-                    value = ignoredCount.toString(),
+                    value = ignoredReminders.size.toString(),
                     title = "Total ignorés",
-                    subtitle = "Cette semaine",
+                    subtitle = "Aujourd’hui",
                     accent = Color(0xFFF4B400),
                     bg = Color(0xFFF8F0DE),
                     icon = Icons.Default.Notifications
@@ -135,9 +121,9 @@ fun IgnoredRemindersScreen(
 
                 SmallSummaryCard(
                     modifier = Modifier.weight(1f),
-                    value = yesterdayCount.toString(),
+                    value = ignoredYesterdayCount.toString(),
                     title = "Hier",
-                    subtitle = "2 Avril",
+                    subtitle = "Jour précédent",
                     accent = Color(0xFFE06464),
                     bg = Color(0xFFFBEDED),
                     icon = Icons.Default.NotificationsNone
@@ -145,9 +131,9 @@ fun IgnoredRemindersScreen(
 
                 SmallSummaryCard(
                     modifier = Modifier.weight(1f),
-                    value = receivedCount.toString(),
+                    value = totalReceivedCount.toString(),
                     title = "Total reçus",
-                    subtitle = "Cette semaine",
+                    subtitle = "Aujourd’hui",
                     accent = Color(0xFF59D2CC),
                     bg = Color(0xFFE6F8F7),
                     icon = Icons.Default.Notifications
@@ -155,13 +141,12 @@ fun IgnoredRemindersScreen(
             }
 
             DailyEvolutionCard(
-                values = listOf(1, 3, 0, 2, 1, 4, 2),
+                values = safeIgnoredPerDay,
                 labels = listOf("Lun.", "Mar.", "Mer.", "Jeu.", "Ven.", "Sam.", "Dim.")
             )
 
             LatestIgnoredCard(
-                reminders = displayReminders,
-                showDemoBadge = !hasRealData
+                reminders = ignoredReminders
             )
         }
     }
@@ -288,8 +273,7 @@ private fun DailyEvolutionCard(
 
 @Composable
 private fun LatestIgnoredCard(
-    reminders: List<String>,
-    showDemoBadge: Boolean
+    reminders: List<String>
 ) {
     val colors = MaterialTheme.colorScheme
     val backgrounds = listOf(
@@ -318,15 +302,6 @@ private fun LatestIgnoredCard(
                     fontWeight = FontWeight.SemiBold,
                     color = colors.onSurface
                 )
-
-                if (showDemoBadge) {
-                    Text(
-                        text = "Démo",
-                        color = Color(0xFF8A5CF6),
-                        style = MaterialTheme.typography.labelMedium,
-                        fontWeight = FontWeight.Bold
-                    )
-                }
             }
 
             HorizontalDivider(
@@ -334,48 +309,49 @@ private fun LatestIgnoredCard(
                 color = Color(0xFFF2C9F2)
             )
 
-            Column(
-                modifier = Modifier.padding(14.dp),
-                verticalArrangement = Arrangement.spacedBy(10.dp)
-            ) {
-                reminders.forEachIndexed { index, reminder ->
-                    Surface(
-                        shape = RoundedCornerShape(16.dp),
-                        color = backgrounds[index % backgrounds.size],
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Row(
-                            modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp),
-                            verticalAlignment = Alignment.CenterVertically
+            if (reminders.isEmpty()) {
+                Text(
+                    text = "Aucun rappel ignoré pour le moment.",
+                    modifier = Modifier.padding(16.dp),
+                    color = colors.onSurfaceVariant,
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            } else {
+                Column(
+                    modifier = Modifier.padding(14.dp),
+                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    reminders.take(3).forEachIndexed { index, reminder ->
+                        Surface(
+                            shape = RoundedCornerShape(16.dp),
+                            color = backgrounds[index % backgrounds.size],
+                            modifier = Modifier.fillMaxWidth()
                         ) {
-                            Column(modifier = Modifier.weight(1f)) {
-                                Text(
-                                    text = reminder,
-                                    fontWeight = FontWeight.Medium,
-                                    color = Color(0xFF2A2A2A)
-                                )
-                                Text(
-                                    text = "Hier",
-                                    style = MaterialTheme.typography.labelMedium,
-                                    color = Color.DarkGray
-                                )
-                            }
+                            Row(
+                                modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(
+                                        text = reminder,
+                                        fontWeight = FontWeight.Medium,
+                                        color = Color(0xFF2A2A2A)
+                                    )
+                                    Text(
+                                        text = "Aujourd’hui",
+                                        style = MaterialTheme.typography.labelMedium,
+                                        color = Color.DarkGray
+                                    )
+                                }
 
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Text(
-                                    text = listOf("08:00", "10:00", "17:45")[index % 3],
-                                    fontWeight = FontWeight.Bold,
-                                    color = Color(0xFF2A2A2A)
-                                )
-
-                                Spacer(modifier = Modifier.width(8.dp))
-
-                                Icon(
-                                    imageVector = Icons.Default.Notifications,
-                                    contentDescription = null,
-                                    tint = Color(0xFF2A2A2A),
-                                    modifier = Modifier.size(18.dp)
-                                )
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Icon(
+                                        imageVector = Icons.Default.Notifications,
+                                        contentDescription = null,
+                                        tint = Color(0xFF2A2A2A),
+                                        modifier = Modifier.size(18.dp)
+                                    )
+                                }
                             }
                         }
                     }

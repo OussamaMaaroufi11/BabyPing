@@ -36,9 +36,14 @@ data class Routine(
     val longitude: Double? = null,
     val radius: Float = 100f,
     val locationName: String? = null,
-
     val notificationsEnabled: Boolean = true
-)
+) {
+    val hasLocationTrigger: Boolean
+        get() = latitude != null && longitude != null
+
+    val hasDescription: Boolean
+        get() = description.isNotBlank()
+}
 
 data class HomeCategory(
     val title: String,
@@ -51,4 +56,7 @@ data class RoutineLocation(
     val longitude: Double,
     val radius: Float,
     val locationName: String? = null
-)
+) {
+    val displayName: String
+        get() = locationName ?: "Zone personnalisée"
+}

@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -28,6 +29,7 @@ import androidx.compose.material.icons.filled.Alarm
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.RadioButtonUnchecked
 import androidx.compose.material3.AlertDialog
@@ -95,7 +97,12 @@ fun CategoryListScreen(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
             TopAppBar(
-                title = {},
+                title = {
+                    Text(
+                        text = categoryTitle,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(
@@ -105,7 +112,9 @@ fun CategoryListScreen(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = colors.background
+                    containerColor = colors.background,
+                    titleContentColor = colors.onSurface,
+                    navigationIconContentColor = colors.onSurface
                 ),
                 scrollBehavior = scrollBehavior
             )
@@ -124,7 +133,6 @@ fun CategoryListScreen(
             }
         }
     ) { innerPadding ->
-
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -195,9 +203,7 @@ fun CategoryListScreen(
                         val isDone = doneIdsToday.contains(routine.id)
 
                         RoutineItemCard(
-                            title = routine.title,
-                            description = routine.description,
-                            time = routine.time,
+                            routine = routine,
                             frequencyText = frequencyTextProvider(routine),
                             done = isDone,
                             onToggleDone = { onToggleDone(routine.id) },
@@ -210,7 +216,7 @@ fun CategoryListScreen(
 
             OutlinedButton(
                 onClick = onQuit,
-                shape = RoundedCornerShape(size = 28.dp),
+                shape = RoundedCornerShape(28.dp),
                 border = ButtonDefaults.outlinedButtonBorder(enabled = true),
                 modifier = Modifier
                     .fillMaxWidth()
@@ -218,7 +224,7 @@ fun CategoryListScreen(
                     .padding(bottom = 20.dp)
             ) {
                 Text(
-                    text = "QUITTER",
+                    text = "Quitter",
                     fontWeight = FontWeight.SemiBold
                 )
             }
@@ -228,9 +234,7 @@ fun CategoryListScreen(
 
 @Composable
 private fun RoutineItemCard(
-    title: String,
-    description: String,
-    time: String,
+    routine: Routine,
     frequencyText: String,
     done: Boolean,
     onToggleDone: () -> Unit,
@@ -245,27 +249,27 @@ private fun RoutineItemCard(
     val doneBackground = colors.surface
     val doneBorder = colors.secondary
 
-    val cardColor = animateColorAsState(
+    val cardColor by animateColorAsState(
         targetValue = if (done) doneBackground else colors.surface,
         label = "cardColor"
     )
 
-    val borderColor = animateColorAsState(
+    val borderColor by animateColorAsState(
         targetValue = if (done) doneBorder else colors.outline.copy(alpha = 0.4f),
         label = "borderColor"
     )
 
-    val mainTextColor = animateColorAsState(
+    val mainTextColor by animateColorAsState(
         targetValue = if (done) colors.secondary else colors.onSurface,
         label = "mainTextColor"
     )
 
-    val secondaryTextColor = animateColorAsState(
+    val secondaryTextColor by animateColorAsState(
         targetValue = if (done) colors.secondary else colors.onSurfaceVariant,
         label = "secondaryTextColor"
     )
 
-    val scale = animateFloatAsState(
+    val scale by animateFloatAsState(
         targetValue = if (done) 1.15f else 1f,
         animationSpec = spring(dampingRatio = 0.5f),
         label = "checkScale"
@@ -273,11 +277,11 @@ private fun RoutineItemCard(
 
     Surface(
         shape = shape,
-        color = cardColor.value,
+        color = cardColor,
         shadowElevation = if (done) 12.dp else 6.dp,
         modifier = Modifier
             .fillMaxWidth()
-            .border(1.dp, borderColor.value, shape)
+            .border(1.dp, borderColor, shape)
     ) {
         Column(
             modifier = Modifier.padding(14.dp)
@@ -286,16 +290,16 @@ private fun RoutineItemCard(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = title,
+                    text = routine.title,
                     modifier = Modifier.weight(1f),
                     fontWeight = FontWeight.SemiBold,
-                    color = mainTextColor.value
+                    color = mainTextColor
                 )
 
                 Text(
-                    text = time,
+                    text = routine.time,
                     fontWeight = FontWeight.Bold,
-                    color = mainTextColor.value
+                    color = mainTextColor
                 )
 
                 Spacer(modifier = Modifier.size(8.dp))
@@ -303,16 +307,26 @@ private fun RoutineItemCard(
                 Icon(
                     imageVector = Icons.Default.Alarm,
                     contentDescription = null,
-                    tint = mainTextColor.value
+                    tint = mainTextColor
                 )
 
-                Spacer(modifier = Modifier.size(6.dp))
+                if (routine.notificationsEnabled) {
+                    Spacer(modifier = Modifier.size(6.dp))
+                    Icon(
+                        imageVector = Icons.Default.Notifications,
+                        contentDescription = null,
+                        tint = mainTextColor
+                    )
+                }
 
-                Icon(
-                    imageVector = Icons.Default.Notifications,
-                    contentDescription = null,
-                    tint = mainTextColor.value
-                )
+                if (routine.hasLocationTrigger) {
+                    Spacer(modifier = Modifier.size(6.dp))
+                    Icon(
+                        imageVector = Icons.Default.LocationOn,
+                        contentDescription = null,
+                        tint = mainTextColor
+                    )
+                }
 
                 IconButton(onClick = onToggleDone) {
                     Icon(
@@ -323,17 +337,17 @@ private fun RoutineItemCard(
                         },
                         contentDescription = null,
                         tint = if (done) colors.secondary else colors.onSurfaceVariant,
-                        modifier = Modifier.scale(scale.value)
+                        modifier = Modifier.scale(scale)
                     )
                 }
             }
 
-            if (description.isNotBlank()) {
+            if (routine.description.isNotBlank()) {
                 Spacer(modifier = Modifier.size(6.dp))
 
                 Text(
-                    text = description,
-                    color = secondaryTextColor.value,
+                    text = routine.description,
+                    color = secondaryTextColor,
                     style = MaterialTheme.typography.bodySmall,
                     maxLines = 2
                 )
@@ -347,7 +361,7 @@ private fun RoutineItemCard(
                 Text(
                     text = if (done) "Terminée • $frequencyText" else frequencyText,
                     modifier = Modifier.weight(1f),
-                    color = secondaryTextColor.value,
+                    color = secondaryTextColor,
                     style = MaterialTheme.typography.bodySmall
                 )
 

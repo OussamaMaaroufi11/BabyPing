@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
@@ -22,6 +21,7 @@ import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -89,7 +89,6 @@ fun SettingsScreen(
             )
         }
     ) { innerPadding ->
-
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -98,6 +97,17 @@ fun SettingsScreen(
                 .padding(horizontal = 16.dp, vertical = 14.dp),
             verticalArrangement = Arrangement.spacedBy(18.dp)
         ) {
+            Text(
+                text = "Personnalisez votre expérience BabyPing",
+                style = MaterialTheme.typography.bodyLarge,
+                color = colors.onSurfaceVariant
+            )
+
+            HorizontalDivider(
+                thickness = 1.dp,
+                color = Color(0xFFF2C9F2)
+            )
+
             ProfileCard(
                 profileName = profileName,
                 onClick = onProfileClick
@@ -106,6 +116,7 @@ fun SettingsScreen(
             SwitchCard(
                 icon = Icons.Default.DarkMode,
                 title = "Mode sombre",
+                subtitle = "Adapter l’apparence de l’application",
                 checked = isDarkMode,
                 onCheckedChange = onDarkModeChange
             )
@@ -176,6 +187,7 @@ private fun ProfileCard(
 private fun SwitchCard(
     icon: androidx.compose.ui.graphics.vector.ImageVector,
     title: String,
+    subtitle: String,
     checked: Boolean,
     onCheckedChange: (Boolean) -> Unit
 ) {
@@ -201,12 +213,19 @@ private fun SwitchCard(
 
             Spacer(modifier = Modifier.size(14.dp))
 
-            Text(
-                text = title,
-                style = MaterialTheme.typography.titleMedium,
-                color = colors.onSurface,
-                modifier = Modifier.weight(1f)
-            )
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    color = colors.onSurface
+                )
+                Text(
+                    text = subtitle,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = colors.onSurfaceVariant
+                )
+            }
 
             Switch(
                 checked = checked,
@@ -251,12 +270,19 @@ private fun NotificationsCard(
 
             Spacer(modifier = Modifier.size(14.dp))
 
-            Text(
-                text = "Notifications",
-                style = MaterialTheme.typography.titleMedium,
-                color = colors.onSurface,
-                modifier = Modifier.weight(1f)
-            )
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = "Notifications",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    color = colors.onSurface
+                )
+                Text(
+                    text = "Gérer les alertes, sons et vibrations",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = colors.onSurfaceVariant
+                )
+            }
 
             Switch(
                 checked = notificationsEnabled,

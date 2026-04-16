@@ -2,18 +2,40 @@ package com.app.babyroutine.ui.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -47,17 +69,27 @@ fun ProfileScreen(
         topBar = {
             TopAppBar(
                 title = {
-                    Text("Mon profil", fontWeight = FontWeight.SemiBold)
+                    Text(
+                        text = "Mon profil",
+                        fontWeight = FontWeight.SemiBold
+                    )
                 },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, null)
+                        Icon(
+                            Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Retour"
+                        )
                     }
-                }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = colors.background,
+                    titleContentColor = colors.onSurface,
+                    navigationIconContentColor = colors.onSurface
+                )
             )
         }
     ) { innerPadding ->
-
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -66,7 +98,6 @@ fun ProfileScreen(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-
             Surface(
                 shape = RoundedCornerShape(26.dp),
                 color = colors.surface,
@@ -84,10 +115,9 @@ fun ProfileScreen(
                     verticalArrangement = Arrangement.spacedBy(14.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-
                     Box(
                         modifier = Modifier
-                            .size(70.dp)
+                            .size(72.dp)
                             .clip(CircleShape)
                             .background(colors.secondary.copy(alpha = 0.2f))
                             .border(
@@ -98,17 +128,30 @@ fun ProfileScreen(
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
-                            Icons.Default.Person,
-                            null,
+                            imageVector = Icons.Default.Person,
+                            contentDescription = null,
                             tint = colors.primary,
                             modifier = Modifier.size(34.dp)
                         )
                     }
 
                     Text(
-                        "Modifier les informations",
+                        text = "Modifier les informations",
                         fontWeight = FontWeight.SemiBold,
-                        color = colors.onSurface
+                        color = colors.onSurface,
+                        style = MaterialTheme.typography.titleMedium
+                    )
+
+                    Text(
+                        text = "Personnalisez votre profil BabyPing",
+                        color = colors.onSurfaceVariant,
+                        style = MaterialTheme.typography.bodySmall
+                    )
+
+                    HorizontalDivider(
+                        modifier = Modifier.fillMaxWidth(),
+                        thickness = 1.dp,
+                        color = colors.outline.copy(alpha = 0.18f)
                     )
 
                     OutlinedTextField(
@@ -116,7 +159,8 @@ fun ProfileScreen(
                         onValueChange = { name = it },
                         label = { Text("Nom complet") },
                         modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(16.dp)
+                        shape = RoundedCornerShape(16.dp),
+                        singleLine = true
                     )
 
                     OutlinedTextField(
@@ -124,7 +168,8 @@ fun ProfileScreen(
                         onValueChange = { email = it },
                         label = { Text("Email") },
                         modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(16.dp)
+                        shape = RoundedCornerShape(16.dp),
+                        singleLine = true
                     )
 
                     OutlinedTextField(
@@ -132,10 +177,9 @@ fun ProfileScreen(
                         onValueChange = { phone = it },
                         label = { Text("Téléphone") },
                         modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(16.dp)
+                        shape = RoundedCornerShape(16.dp),
+                        singleLine = true
                     )
-
-                    Spacer(modifier = Modifier.height(8.dp))
 
                     Button(
                         onClick = {
@@ -150,7 +194,10 @@ fun ProfileScreen(
                             .fillMaxWidth()
                             .height(54.dp)
                     ) {
-                        Text("Enregistrer", fontWeight = FontWeight.SemiBold)
+                        Text(
+                            text = "Enregistrer",
+                            fontWeight = FontWeight.SemiBold
+                        )
                     }
                 }
             }

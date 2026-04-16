@@ -43,8 +43,6 @@ android {
     }
 }
 
-tasks.register("testClasses")
-
 dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
@@ -66,9 +64,9 @@ dependencies {
     // OpenStreetMap
     implementation("org.osmdroid:osmdroid-android:6.1.20")
 
+    // Room
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
-    implementation(libs.androidx.foundation)
     ksp(libs.androidx.room.compiler)
 
     testImplementation(libs.junit)

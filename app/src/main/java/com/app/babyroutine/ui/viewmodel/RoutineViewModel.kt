@@ -4,17 +4,17 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.app.babyroutine.data.AppDatabase
-import com.app.babyroutine.data.initialRoutines
+import com.app.babyroutine.data.RoutineRepository
 import com.app.babyroutine.model.Routine
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 
 class RoutineViewModel(application: Application) : AndroidViewModel(application) {
 
-    private val database = AppDatabase.Companion.getDatabase(application)
-    private val routineDao = database.routineDao()
+    private val database = AppDatabase.getDatabase(application)
+    private val repository = RoutineRepository(database.routineDao())
 
-    val allRoutines: Flow<List<Routine>> = routineDao.getAllRoutines()
+    val allRoutines: Flow<List<Routine>> = repository.getAllRoutines()
 
     init {
         seedInitialDataIfNeeded()
@@ -22,22 +22,29 @@ class RoutineViewModel(application: Application) : AndroidViewModel(application)
 
     private fun seedInitialDataIfNeeded() {
         viewModelScope.launch {
-            val count = routineDao.getRoutineCount()
-            if (count == 0) {
-                routineDao.insertAll(initialRoutines)
-            }
+            repository.seedDemoDataIfEmpty()
+        }
+    }
+
+    fun getRoutinesByCategory(category: String): Flow<List<Routine>> {
+        return repository.getRoutinesByCategory(category)
+    }
+
+    fun upsertRoutine(routine: Routine) {
+        viewModelScope.launch {
+            repository.upsertRoutine(routine)
         }
     }
 
     fun deleteRoutineById(routineId: String) {
         viewModelScope.launch {
-            routineDao.deleteRoutineById(routineId)
+            repository.deleteRoutineById(routineId)
         }
     }
 
-    fun upsertRoutine(routine: Routine) {
+    fun deleteAllRoutines() {
         viewModelScope.launch {
-            routineDao.upsertRoutine(routine)
+            repository.deleteAllRoutines()
         }
     }
 }

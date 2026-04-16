@@ -17,21 +17,21 @@ private val LightColors = lightColorScheme(
     secondaryContainer = Color(0xFFC8F3D2),
     onSecondaryContainer = Color(0xFF173222),
 
-    tertiary = Color(0xFFF8EEFF),
-    onTertiary = Color(0xFF30263A),
+    tertiary = BabyLavender,
+    onTertiary = Color(0xFF2E2440),
 
     background = LightBg,
-    onBackground = Color(0xFF1F2430),
+    onBackground = LightTextPrimary,
 
-    surface = Color.White,
-    onSurface = Color(0xFF1F2430),
+    surface = LightSurface,
+    onSurface = LightTextPrimary,
 
     surfaceVariant = LightSurfaceSoft,
-    onSurfaceVariant = Color(0xFF626B7A),
+    onSurfaceVariant = LightTextSecondary,
 
     outline = LightOutline,
 
-    error = Color(0xFFFF6B6B),
+    error = SoftRed,
     onError = Color.White
 )
 
@@ -59,7 +59,7 @@ private val DarkColors = darkColorScheme(
 
     outline = DarkOutline,
 
-    error = Color(0xFFFF7B7B),
+    error = SoftRed,
     onError = Color(0xFF2A0C0C)
 )
 

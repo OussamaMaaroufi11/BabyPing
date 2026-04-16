@@ -45,9 +45,15 @@ fun StatisticsScreen(
     onBack: () -> Unit,
     completedPercent: Int,
     ignoredRemindersCount: Int,
+    totalRoutines: Int,
+    weekProgress: List<Int>,
     onIgnoredRemindersClick: () -> Unit
 ) {
     val colors = MaterialTheme.colorScheme
+    val safeWeekProgress = weekProgress.take(7).let {
+        if (it.size == 7) it else List(7) { index -> it.getOrElse(index) { 0 } }
+    }
+    val weekLabels = listOf("L", "M", "M", "J", "V", "S", "D")
 
     val backgroundBrush = Brush.verticalGradient(
         colors = listOf(
@@ -57,10 +63,6 @@ fun StatisticsScreen(
             colors.background
         )
     )
-
-    val totalRoutines = 7
-    val weekProgress = listOf(100, 80, 80, 80, 80, 50, 70)
-    val weekLabels = listOf("L", "M", "M", "J", "V", "S", "D")
 
     Scaffold(
         containerColor = colors.background,
@@ -118,23 +120,9 @@ fun StatisticsScreen(
 
             TotalRoutinesCard(
                 totalRoutines = totalRoutines,
-                weekProgress = weekProgress,
+                weekProgress = safeWeekProgress,
                 weekLabels = weekLabels
             )
-
-            Surface(
-                shape = RoundedCornerShape(20.dp),
-                color = colors.surface.copy(alpha = 0.94f),
-                shadowElevation = 6.dp,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text(
-                    text = "Ces statistiques vous permettent de suivre la progression des routines et d’identifier les rappels les plus souvent ignorés.",
-                    modifier = Modifier.padding(14.dp),
-                    color = colors.onSurfaceVariant,
-                    style = MaterialTheme.typography.bodySmall
-                )
-            }
         }
     }
 }

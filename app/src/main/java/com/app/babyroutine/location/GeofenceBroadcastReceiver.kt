@@ -14,14 +14,20 @@ class GeofenceBroadcastReceiver : BroadcastReceiver() {
 
         if (geofencingEvent.hasError()) return
 
-        if (geofencingEvent.geofenceTransition == Geofence.GEOFENCE_TRANSITION_ENTER) {
-            val routineTitle = intent.getStringExtra("routine_title") ?: "Routine"
+        val transitionType = geofencingEvent.geofenceTransition
+        if (transitionType != Geofence.GEOFENCE_TRANSITION_ENTER) return
 
-            NotificationHelper.showRoutineNotification(
-                context = context,
-                title = "Routine déclenchée",
-                message = "Vous êtes entré dans la zone de : $routineTitle"
-            )
-        }
+        val routineTitle = intent.getStringExtra(EXTRA_ROUTINE_TITLE)
+            ?: "Routine BabyPing"
+
+        NotificationHelper.showRoutineNotification(
+            context = context,
+            title = "Routine déclenchée",
+            message = "Vous êtes arrivé dans la zone de : $routineTitle"
+        )
+    }
+
+    companion object {
+        const val EXTRA_ROUTINE_TITLE = "extra_routine_title"
     }
 }

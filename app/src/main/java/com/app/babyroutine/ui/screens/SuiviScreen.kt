@@ -21,6 +21,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -110,7 +111,6 @@ fun SuiviScreen(
             )
         }
     ) { innerPadding ->
-
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -133,7 +133,7 @@ fun SuiviScreen(
                 done = done
             )
 
-            Spacer(modifier = Modifier.height(20.dp))
+            Spacer(modifier = Modifier.height(18.dp))
 
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
@@ -205,7 +205,7 @@ private fun ProgressCard(
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Column {
                         Text(
-                            text = "ROUTINE",
+                            text = "ROUTINES DU JOUR",
                             style = MaterialTheme.typography.bodySmall,
                             color = colors.onSurfaceVariant
                         )
@@ -221,7 +221,7 @@ private fun ProgressCard(
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         CircularProgressIndicator(
                             progress = { safeProgress },
-                            modifier = Modifier.size(34.dp),
+                            modifier = Modifier.size(36.dp),
                             strokeWidth = 4.dp,
                             color = colors.primary
                         )
@@ -297,6 +297,13 @@ private fun CalendarCard(
 
             Spacer(modifier = Modifier.height(12.dp))
             WeekRow(thisWeek)
+
+            Spacer(modifier = Modifier.height(18.dp))
+
+            HorizontalDivider(
+                thickness = 1.dp,
+                color = colors.outline.copy(alpha = 0.18f)
+            )
 
             Spacer(modifier = Modifier.height(18.dp))
 
@@ -416,7 +423,7 @@ private fun formatFrenchDate(date: LocalDate): String {
         DateTimeFormatter.ofPattern("dd MMMM yyyy", Locale.FRENCH)
     )
 }
-//
+
 fun getMotivationMessage(total: Int, done: Int): String {
     val percent = if (total == 0) 0 else (done * 100) / total
 

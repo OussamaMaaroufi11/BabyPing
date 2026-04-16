@@ -11,6 +11,7 @@ import com.app.babyroutine.model.Frequency
 import com.app.babyroutine.model.HomeCategory
 import com.app.babyroutine.model.Priority
 import com.app.babyroutine.model.Routine
+import java.util.UUID
 
 val homeCategories = listOf(
     HomeCategory(
@@ -40,41 +41,32 @@ val homeCategories = listOf(
     )
 )
 
-val initialRoutines = listOf(
+val demoRoutines = listOf(
     Routine(
-        id = "r1",
-        title = "Changer la couche",
-        description = "Préparer une couche propre et des lingettes.",
-        time = "07:00",
+        id = UUID.randomUUID().toString(),
+        title = "Donner le biberon",
+        description = "Routine du matin pour bébé",
+        time = "08:00",
         category = "Quotidiens",
         frequency = Frequency.DAILY,
         priority = Priority.HIGH
     ),
     Routine(
-        id = "r2",
-        title = "Petit déjeuner",
-        description = "Donner le repas du matin au bébé.",
-        time = "08:00",
-        category = "Quotidiens",
-        frequency = Frequency.DAILY,
-        priority = Priority.MEDIUM
-    ),
-    Routine(
-        id = "r3",
-        title = "Sieste",
-        description = "Prévoir une période calme pour la sieste.",
-        time = "14:00",
-        category = "Programmes",
+        id = UUID.randomUUID().toString(),
+        title = "Petite promenade",
+        description = "Sortie légère au parc",
+        time = "10:00",
+        category = "Activités",
         frequency = Frequency.SOME_DAYS,
         priority = Priority.MEDIUM
     ),
     Routine(
-        id = "r4",
-        title = "Jeu",
-        description = "Temps de jeu et de stimulation.",
-        time = "16:00",
-        category = "Activités",
-        frequency = Frequency.DAILY,
-        priority = Priority.LOW
+        id = UUID.randomUUID().toString(),
+        title = "Rendez-vous pédiatre",
+        description = "Contrôle de santé",
+        time = "17:45",
+        category = "Santé",
+        frequency = Frequency.ONCE,
+        priority = Priority.HIGH
     )
 )

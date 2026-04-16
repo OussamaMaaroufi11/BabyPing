@@ -3,7 +3,6 @@ package com.app.babyroutine.ui.screens
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -14,9 +13,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.NotificationsActive
+import androidx.compose.material.icons.filled.VolumeUp
+import androidx.compose.material.icons.filled.Vibration
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -92,22 +95,38 @@ fun NotificationSettingsScreen(
                 .padding(horizontal = 16.dp, vertical = 14.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
+            Text(
+                text = "Choisissez comment BabyPing vous accompagne au quotidien",
+                style = MaterialTheme.typography.bodyLarge,
+                color = colors.onSurfaceVariant
+            )
+
+            HorizontalDivider(
+                thickness = 1.dp,
+                color = Color(0xFFF2C9F2)
+            )
 
             NotificationOptionCard(
+                icon = Icons.Default.NotificationsActive,
                 title = "Activer les notifications",
+                subtitle = "Recevoir les rappels de routines",
                 checked = notificationsEnabled,
                 onCheckedChange = onNotificationsEnabledChange
             )
 
             NotificationOptionCard(
+                icon = Icons.Default.VolumeUp,
                 title = "Sons",
+                subtitle = "Lire un son lors des rappels",
                 checked = soundEnabled,
                 onCheckedChange = onSoundEnabledChange,
                 enabled = notificationsEnabled
             )
 
             NotificationOptionCard(
+                icon = Icons.Default.Vibration,
                 title = "Vibrations",
+                subtitle = "Vibrer quand une routine est déclenchée",
                 checked = vibrationEnabled,
                 onCheckedChange = onVibrationEnabledChange,
                 enabled = notificationsEnabled
@@ -139,7 +158,9 @@ fun NotificationSettingsScreen(
 
 @Composable
 private fun NotificationOptionCard(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
     title: String,
+    subtitle: String,
     checked: Boolean,
     onCheckedChange: (Boolean) -> Unit,
     enabled: Boolean = true
@@ -162,13 +183,32 @@ private fun NotificationOptionCard(
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 18.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.SemiBold,
-                color = if (enabled) colors.onSurface else colors.onSurfaceVariant,
-                modifier = Modifier.weight(1f)
-            )
+            Surface(
+                shape = RoundedCornerShape(16.dp),
+                color = colors.secondary.copy(alpha = 0.15f),
+                modifier = Modifier.padding(end = 14.dp)
+            ) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    tint = colors.primary,
+                    modifier = Modifier.padding(10.dp)
+                )
+            }
+
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    color = if (enabled) colors.onSurface else colors.onSurfaceVariant
+                )
+                Text(
+                    text = subtitle,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = colors.onSurfaceVariant
+                )
+            }
 
             Switch(
                 checked = checked,

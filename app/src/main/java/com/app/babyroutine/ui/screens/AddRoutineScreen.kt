@@ -43,8 +43,9 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -78,16 +79,35 @@ fun AddRoutineScreen(
     val listState = rememberLazyListState()
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
 
-    val categories = listOf("Quotidiens", "Programmes")
+    val categories = listOf("Quotidiens", "Programmes", "Santé", "Activités", "Courses")
 
-    var title by remember { mutableStateOf(initialRoutine?.title ?: "") }
-    var description by remember { mutableStateOf(initialRoutine?.description ?: "") }
-    var selectedCategory by remember { mutableStateOf(initialRoutine?.category ?: category) }
-    var time by remember { mutableStateOf(initialRoutine?.time ?: "") }
-    var frequency by remember { mutableStateOf(initialRoutine?.frequency ?: Frequency.DAILY) }
-    var priority by remember { mutableStateOf(initialRoutine?.priority ?: Priority.HIGH) }
-    var errorMessage by remember { mutableStateOf<String?>(null) }
-    var categoryExpanded by remember { mutableStateOf(false) }
+    var title by rememberSaveable(initialRoutine?.id, category) {
+        mutableStateOf(initialRoutine?.title ?: "")
+    }
+    var description by rememberSaveable(initialRoutine?.id, category) {
+        mutableStateOf(initialRoutine?.description ?: "")
+    }
+    var selectedCategory by rememberSaveable(initialRoutine?.id, category) {
+        mutableStateOf(initialRoutine?.category ?: category)
+    }
+    var time by rememberSaveable(initialRoutine?.id, category) {
+        mutableStateOf(initialRoutine?.time ?: "")
+    }
+    var frequencyName by rememberSaveable(initialRoutine?.id, category) {
+        mutableStateOf((initialRoutine?.frequency ?: Frequency.DAILY).name)
+    }
+    var priorityName by rememberSaveable(initialRoutine?.id, category) {
+        mutableStateOf((initialRoutine?.priority ?: Priority.HIGH).name)
+    }
+    var errorMessage by rememberSaveable(initialRoutine?.id, category) {
+        mutableStateOf<String?>(null)
+    }
+    var categoryExpanded by rememberSaveable {
+        mutableStateOf(false)
+    }
+
+    val frequency = Frequency.valueOf(frequencyName)
+    val priority = Priority.valueOf(priorityName)
 
     fun openTimePicker() {
         val calendar = Calendar.getInstance()
@@ -119,18 +139,12 @@ fun AddRoutineScreen(
             TopAppBar(
                 title = {
                     Text(
-                        text = if (initialRoutine == null) {
-                            "Création d’une nouvelle routine"
-                        } else {
-                            "Modifier la routine"
-                        },
+                        text = if (initialRoutine == null) "Créer une routine" else "Modifier la routine",
                         fontWeight = FontWeight.SemiBold
                     )
                 },
                 navigationIcon = {
-                    IconButton(
-                        onClick = onBack
-                    ) {
+                    IconButton(onClick = onBack) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Retour",
@@ -154,7 +168,8 @@ fun AddRoutineScreen(
                 .background(backgroundBrush)
                 .padding(innerPadding)
                 .padding(horizontal = 16.dp)
-                .imePadding(),
+                .imePadding()
+                .navigationBarsPadding(),
             contentPadding = PaddingValues(bottom = 28.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
@@ -195,7 +210,7 @@ fun AddRoutineScreen(
                                 errorMessage = null
                             },
                             label = { Text("Nom de la routine") },
-                            placeholder = { Text("Veuillez saisir le nom de la routine...") },
+                            placeholder = { Text("Ex. : Donner le biberon") },
                             modifier = Modifier.fillMaxWidth(),
                             singleLine = true,
                             isError = errorMessage != null && title.isBlank(),
@@ -206,7 +221,7 @@ fun AddRoutineScreen(
                             value = description,
                             onValueChange = { description = it },
                             label = { Text("Description") },
-                            placeholder = { Text("Veuillez saisir la description...") },
+                            placeholder = { Text("Ajoutez quelques détails...") },
                             modifier = Modifier.fillMaxWidth(),
                             minLines = 2,
                             maxLines = 3,
@@ -215,7 +230,54 @@ fun AddRoutineScreen(
 
                         Column {
                             Text(
-                                text = "Horaires",
+                                text = "Catégorie",
+                                fontWeight = FontWeight.SemiBold,
+                                color = colors.onSurface,
+                                modifier = Modifier.padding(bottom = 8.dp)
+                            )
+
+                            Box {
+                                OutlinedTextField(
+                                    value = selectedCategory,
+                                    onValueChange = {},
+                                    readOnly = true,
+                                    placeholder = { Text("Choisir une catégorie") },
+                                    trailingIcon = {
+                                        IconButton(onClick = { categoryExpanded = true }) {
+                                            Icon(
+                                                imageVector = Icons.Default.KeyboardArrowDown,
+                                                contentDescription = "Choisir une catégorie",
+                                                tint = colors.primary
+                                            )
+                                        }
+                                    },
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .clickable { categoryExpanded = true },
+                                    shape = RoundedCornerShape(18.dp)
+                                )
+
+                                DropdownMenu(
+                                    expanded = categoryExpanded,
+                                    onDismissRequest = { categoryExpanded = false }
+                                ) {
+                                    categories.forEach { item ->
+                                        DropdownMenuItem(
+                                            text = { Text(item) },
+                                            onClick = {
+                                                selectedCategory = item
+                                                categoryExpanded = false
+                                                errorMessage = null
+                                            }
+                                        )
+                                    }
+                                }
+                            }
+                        }
+
+                        Column {
+                            Text(
+                                text = "Horaire",
                                 fontWeight = FontWeight.SemiBold,
                                 color = colors.onSurface,
                                 modifier = Modifier.padding(bottom = 8.dp)
@@ -254,7 +316,7 @@ fun AddRoutineScreen(
                                 label = "Tous les jours",
                                 selected = frequency == Frequency.DAILY,
                                 onSelect = {
-                                    frequency = Frequency.DAILY
+                                    frequencyName = Frequency.DAILY.name
                                     errorMessage = null
                                 }
                             )
@@ -263,7 +325,7 @@ fun AddRoutineScreen(
                                 label = "Certains jours",
                                 selected = frequency == Frequency.SOME_DAYS,
                                 onSelect = {
-                                    frequency = Frequency.SOME_DAYS
+                                    frequencyName = Frequency.SOME_DAYS.name
                                     errorMessage = null
                                 }
                             )
@@ -272,7 +334,7 @@ fun AddRoutineScreen(
                                 label = "Une seule fois",
                                 selected = frequency == Frequency.ONCE,
                                 onSelect = {
-                                    frequency = Frequency.ONCE
+                                    frequencyName = Frequency.ONCE.name
                                     errorMessage = null
                                 }
                             )
@@ -289,19 +351,19 @@ fun AddRoutineScreen(
                                 PriorityRadio(
                                     label = "Faible",
                                     selected = priority == Priority.LOW,
-                                    onSelect = { priority = Priority.LOW }
+                                    onSelect = { priorityName = Priority.LOW.name }
                                 )
                                 Spacer(modifier = Modifier.width(10.dp))
                                 PriorityRadio(
                                     label = "Moyenne",
                                     selected = priority == Priority.MEDIUM,
-                                    onSelect = { priority = Priority.MEDIUM }
+                                    onSelect = { priorityName = Priority.MEDIUM.name }
                                 )
                                 Spacer(modifier = Modifier.width(10.dp))
                                 PriorityRadio(
                                     label = "Élevée",
                                     selected = priority == Priority.HIGH,
-                                    onSelect = { priority = Priority.HIGH }
+                                    onSelect = { priorityName = Priority.HIGH.name }
                                 )
                             }
                         }
@@ -342,12 +404,8 @@ fun AddRoutineScreen(
                                         )
                                         Spacer(modifier = Modifier.width(8.dp))
                                         Text(
-                                            text = if (selectedLocation != null) {
-                                                selectedLocation.locationName ?: "Lieu sélectionné"
-                                            } else {
-                                                "Aucun lieu sélectionné"
-                                            },
-                                            fontWeight = FontWeight.Medium,
+                                            text = selectedLocation?.displayName ?: "Aucun lieu sélectionné",
+                                            fontWeight = FontWeight.SemiBold,
                                             color = colors.onSurface
                                         )
                                     }
@@ -379,7 +437,7 @@ fun AddRoutineScreen(
                                     ) {
                                         Text(
                                             text = if (selectedLocation == null) {
-                                                "Choisir un lieu sur la carte"
+                                                "Choisir un lieu"
                                             } else {
                                                 "Modifier le lieu"
                                             }

@@ -3,7 +3,6 @@ package com.app.babyroutine.ui.screens
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -21,7 +20,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Lightbulb
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ButtonDefaults
@@ -71,7 +69,6 @@ fun BabyPingHomeScreen(
     val categories = remember { homeCategories }
     var showCategoryPicker by remember { mutableStateOf(false) }
 
-
     Scaffold(
         bottomBar = {
             BabyPingBottomBar(
@@ -81,7 +78,6 @@ fun BabyPingHomeScreen(
         },
         containerColor = colors.background
     ) { innerPadding ->
-
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -93,7 +89,6 @@ fun BabyPingHomeScreen(
                     .fillMaxSize()
                     .padding(horizontal = 18.dp, vertical = 14.dp)
             ) {
-
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically
@@ -120,7 +115,7 @@ fun BabyPingHomeScreen(
                     )
                 }
 
-                Spacer(modifier = Modifier.height(14.dp))
+                Spacer(modifier = Modifier.height(16.dp))
 
                 Text(
                     text = "Catégories",
@@ -150,7 +145,7 @@ fun BabyPingHomeScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        "Rappels",
+                        text = "Rappels",
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.SemiBold,
                         color = colors.onBackground
@@ -158,7 +153,10 @@ fun BabyPingHomeScreen(
 
                     Spacer(modifier = Modifier.weight(1f))
 
-                    Text("Nouveau", color = colors.onSurfaceVariant)
+                    Text(
+                        text = "Nouveau",
+                        color = colors.onSurfaceVariant
+                    )
 
                     Spacer(modifier = Modifier.width(10.dp))
 
@@ -169,14 +167,14 @@ fun BabyPingHomeScreen(
                             .clip(CircleShape)
                             .border(1.dp, colors.outline, CircleShape)
                     ) {
-                        Icon(Icons.Default.Add, null)
+                        Icon(Icons.Default.Add, contentDescription = "Ajouter une routine")
                     }
                 }
 
                 Spacer(modifier = Modifier.height(18.dp))
 
                 if (routines.isEmpty()) {
-                    EmptyRoutineCard("Aucune routine enregistrée.")
+                    EmptyRoutineCard("Aucune routine enregistrée pour le moment.")
                 } else {
                     Box(modifier = Modifier.weight(1f)) {
                         ReminderList(
@@ -230,7 +228,6 @@ fun BabyPingHomeScreen(
                             verticalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
                             categories.forEach { category ->
-
                                 val bgColor =
                                     if (isDark) colors.surfaceVariant.copy(alpha = 0.75f)
                                     else category.bgColor
@@ -262,8 +259,8 @@ fun BabyPingHomeScreen(
                                             contentAlignment = Alignment.Center
                                         ) {
                                             Icon(
-                                                category.icon,
-                                                null,
+                                                imageVector = category.icon,
+                                                contentDescription = null,
                                                 tint = colors.primary
                                             )
                                         }
@@ -271,7 +268,7 @@ fun BabyPingHomeScreen(
                                         Spacer(modifier = Modifier.width(12.dp))
 
                                         Text(
-                                            category.title,
+                                            text = category.title,
                                             fontWeight = FontWeight.SemiBold
                                         )
                                     }
@@ -287,39 +284,6 @@ fun BabyPingHomeScreen(
                     }
                 )
             }
-        }
-    }
-}
-
-private data class SmartSuggestion(
-    val category: String,
-    val message: String
-)
-
-@Composable
-private fun SmartSuggestionCard(
-    message: String,
-    onClick: () -> Unit
-) {
-    val colors = MaterialTheme.colorScheme
-
-    Surface(
-        shape = RoundedCornerShape(20.dp),
-        color = colors.primary.copy(alpha = 0.15f),
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable { onClick() }
-    ) {
-        Row(
-            modifier = Modifier.padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(Icons.Default.Lightbulb, null, tint = colors.primary)
-            Spacer(modifier = Modifier.width(12.dp))
-            Text(
-                text = message,
-                color = colors.onSurface
-            )
         }
     }
 }

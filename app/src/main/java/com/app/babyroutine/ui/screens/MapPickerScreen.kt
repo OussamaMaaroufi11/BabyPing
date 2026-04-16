@@ -197,13 +197,11 @@ fun MapPickerScreen(
                     .padding(horizontal = 16.dp, vertical = 12.dp),
                 verticalArrangement = Arrangement.SpaceBetween
             ) {
-                Column {
-                    HorizontalDivider(
-                        modifier = Modifier.fillMaxWidth(),
-                        thickness = 1.dp,
-                        color = Color(0xFFF2C9F2)
-                    )
-                }
+                HorizontalDivider(
+                    modifier = Modifier.fillMaxWidth(),
+                    thickness = 1.dp,
+                    color = Color(0xFFF2C9F2)
+                )
 
                 Surface(
                     shape = RoundedCornerShape(26.dp),
@@ -237,7 +235,7 @@ fun MapPickerScreen(
                         }
 
                         Text(
-                            text = "Touchez la carte pour sélectionner la zone.",
+                            text = "Touchez la carte pour sélectionner la zone de déclenchement.",
                             style = MaterialTheme.typography.bodySmall,
                             color = colors.onSurfaceVariant
                         )
@@ -286,7 +284,7 @@ fun MapPickerScreen(
                         }
 
                         Text(
-                            text = "Rayon : ${selectedRadius.toInt()} m",
+                            text = "Rayon de déclenchement : ${selectedRadius.toInt()} m",
                             color = colors.onSurface,
                             fontWeight = FontWeight.SemiBold
                         )

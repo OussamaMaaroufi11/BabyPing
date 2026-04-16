@@ -21,6 +21,7 @@ import androidx.navigation.navArgument
 import com.app.babyroutine.location.GeofenceManager
 import com.app.babyroutine.model.Frequency
 import com.app.babyroutine.model.HomeTab
+import com.app.babyroutine.model.Routine
 import com.app.babyroutine.model.RoutineLocation
 import com.app.babyroutine.notifications.NotificationHelper
 import com.app.babyroutine.ui.screens.AddRoutineScreen
@@ -36,6 +37,10 @@ import com.app.babyroutine.ui.screens.StatisticsScreen
 import com.app.babyroutine.ui.screens.SuiviScreen
 import com.app.babyroutine.ui.viewmodel.RoutineViewModel
 import java.text.SimpleDateFormat
+import java.time.DayOfWeek
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+import java.time.temporal.TemporalAdjusters
 import java.util.Date
 import java.util.Locale
 
@@ -55,7 +60,6 @@ sealed class Screen(val route: String) {
     }
 
     data object MapPicker : Screen("mapPicker")
-
     data object Suivi : Screen("suivi")
     data object Settings : Screen("settings")
     data object Profile : Screen("profile")
@@ -72,11 +76,38 @@ private fun todayKey(): String {
     return SimpleDateFormat("yyyy-MM-dd", Locale.CANADA).format(Date())
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
+private fun dateKey(date: LocalDate): String {
+    return date.format(DateTimeFormatter.ISO_LOCAL_DATE)
+}
+
+@RequiresApi(Build.VERSION_CODES.O)
+private fun currentWeekKeys(): List<String> {
+    val today = LocalDate.now()
+    val monday = today.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
+    return (0..6).map { offset ->
+        dateKey(monday.plusDays(offset.toLong()))
+    }
+}
+
 private fun frequencyToText(frequency: Frequency): String {
     return when (frequency) {
         Frequency.DAILY -> "Tous les jours"
         Frequency.SOME_DAYS -> "Certains jours"
         Frequency.ONCE -> "Une seule fois"
+    }
+}
+
+private fun Routine.toRoutineLocationOrNull(): RoutineLocation? {
+    return if (latitude != null && longitude != null) {
+        RoutineLocation(
+            latitude = latitude,
+            longitude = longitude,
+            radius = radius,
+            locationName = locationName
+        )
+    } else {
+        null
     }
 }
 
@@ -89,6 +120,7 @@ fun AppRoot(
 ) {
     val navController = rememberNavController()
     val context = LocalContext.current
+    val geofenceManager = remember { GeofenceManager(context) }
 
     val notificationsEnabled = remember { mutableStateOf(true) }
 
@@ -102,13 +134,28 @@ fun AppRoot(
         mutableStateMapOf<String, SnapshotStateList<String>>()
     }
 
-    val ignoredRemindersToday = remember { mutableStateListOf<String>() }
+    val ignoredByDate = remember {
+        mutableStateMapOf<String, SnapshotStateList<String>>()
+    }
+
     val soundEnabled = remember { mutableStateOf(true) }
     val vibrationEnabled = remember { mutableStateOf(true) }
 
     val currentDateKey = todayKey()
+
     val doneTodayIds = doneByDate.getOrPut(currentDateKey) {
         mutableStateListOf()
+    }
+
+    val ignoredRemindersToday = ignoredByDate.getOrPut(currentDateKey) {
+        mutableStateListOf()
+    }
+
+    LaunchedEffect(Unit) {
+        if (ignoredRemindersToday.isEmpty()) {
+            ignoredRemindersToday.add("Donner le biberon au bébé")
+            ignoredRemindersToday.add("Faire une petite balade")
+        }
     }
 
     val totalToday = routines.size
@@ -118,16 +165,27 @@ fun AppRoot(
 
     val pendingPickedLocation = remember { mutableStateOf<RoutineLocation?>(null) }
 
-    LaunchedEffect(routines) {
-        val geofenceManager = GeofenceManager(context)
+    val weekKeys = currentWeekKeys()
 
+    val weekProgress = weekKeys.map { key ->
+        val doneCount = doneByDate[key]?.size ?: 0
+        if (routines.isEmpty()) 0 else ((doneCount.coerceAtMost(routines.size) * 100) / routines.size)
+    }
+
+    val ignoredPerDay = weekKeys.map { key ->
+        ignoredByDate[key]?.size ?: 0
+    }
+
+    val yesterdayKey = if (weekKeys.size >= 2) weekKeys[weekKeys.lastIndex - 1] else currentDateKey
+    val ignoredYesterdayCount = ignoredByDate[yesterdayKey]?.size ?: 0
+    val totalReceivedCount = routines.size
+
+    LaunchedEffect(routines) {
         routines.forEach { routine ->
-            if (
-                routine.notificationsEnabled &&
-                routine.latitude != null &&
-                routine.longitude != null
-            ) {
+            if (routine.notificationsEnabled && routine.hasLocationTrigger) {
                 geofenceManager.addGeofenceForRoutine(routine)
+            } else {
+                geofenceManager.removeGeofenceForRoutine(routine.id)
             }
         }
     }
@@ -166,7 +224,6 @@ fun AppRoot(
             route = Screen.CategoryList.route,
             arguments = listOf(navArgument("category") { type = NavType.StringType })
         ) { backStackEntry ->
-
             val category = backStackEntry.arguments?.getString("category") ?: "Quotidiens"
 
             CategoryListScreen(
@@ -192,6 +249,7 @@ fun AppRoot(
                     navController.navigate(Screen.EditRoutine.route(routineId))
                 },
                 onDelete = { routineId ->
+                    geofenceManager.removeGeofenceForRoutine(routineId)
                     routineViewModel.deleteRoutineById(routineId)
                 },
                 frequencyTextProvider = { routine ->
@@ -226,6 +284,8 @@ fun AppRoot(
                 onBack = { navController.popBackStack() },
                 completedPercent = completedPercent,
                 ignoredRemindersCount = ignoredRemindersToday.size,
+                totalRoutines = routines.size,
+                weekProgress = weekProgress,
                 onIgnoredRemindersClick = {
                     navController.navigate(Screen.IgnoredReminders.route)
                 }
@@ -235,7 +295,10 @@ fun AppRoot(
         composable(Screen.IgnoredReminders.route) {
             IgnoredRemindersScreen(
                 onBack = { navController.popBackStack() },
-                ignoredReminders = ignoredRemindersToday
+                ignoredReminders = ignoredRemindersToday,
+                ignoredYesterdayCount = ignoredYesterdayCount,
+                totalReceivedCount = totalReceivedCount,
+                ignoredPerDay = ignoredPerDay
             )
         }
 
@@ -289,9 +352,7 @@ fun AppRoot(
                 onProfileClick = {
                     navController.navigate(Screen.Profile.route)
                 },
-                onDarkModeChange = { enabled ->
-                    onDarkModeChange(enabled)
-                },
+                onDarkModeChange = onDarkModeChange,
                 onNotificationsChange = { enabled ->
                     notificationsEnabled.value = enabled
                 },
@@ -321,7 +382,6 @@ fun AppRoot(
             route = Screen.AddRoutine.route,
             arguments = listOf(navArgument("category") { type = NavType.StringType })
         ) { backStackEntry ->
-
             val category = backStackEntry.arguments?.getString("category") ?: "Quotidiens"
 
             AddRoutineScreen(
@@ -356,23 +416,12 @@ fun AppRoot(
             route = Screen.EditRoutine.route,
             arguments = listOf(navArgument("id") { type = NavType.StringType })
         ) { backStackEntry ->
-
             val routineId = backStackEntry.arguments?.getString("id") ?: ""
             val routineToEdit = routines.firstOrNull { it.id == routineId }
 
             if (routineToEdit != null) {
-                val selectedLocationForEdit = pendingPickedLocation.value ?: run {
-                    if (routineToEdit.latitude != null && routineToEdit.longitude != null) {
-                        RoutineLocation(
-                            latitude = routineToEdit.latitude,
-                            longitude = routineToEdit.longitude,
-                            radius = routineToEdit.radius,
-                            locationName = routineToEdit.locationName
-                        )
-                    } else {
-                        null
-                    }
-                }
+                val selectedLocationForEdit =
+                    pendingPickedLocation.value ?: routineToEdit.toRoutineLocationOrNull()
 
                 AddRoutineScreen(
                     category = routineToEdit.category,
@@ -410,7 +459,6 @@ fun AppRoot(
             route = Screen.RoutineOptions.route,
             arguments = listOf(navArgument("id") { type = NavType.StringType })
         ) { backStackEntry ->
-
             val routineId = backStackEntry.arguments?.getString("id") ?: ""
             val routine = routines.firstOrNull { it.id == routineId }
 
@@ -422,22 +470,11 @@ fun AppRoot(
                         navController.navigate(Screen.EditRoutine.route(routine.id))
                     },
                     onTrigger = {
-                        pendingPickedLocation.value =
-                            if (routine.latitude != null && routine.longitude != null) {
-                                RoutineLocation(
-                                    latitude = routine.latitude,
-                                    longitude = routine.longitude,
-                                    radius = routine.radius,
-                                    locationName = routine.locationName
-                                )
-                            } else {
-                                null
-                            }
-
+                        pendingPickedLocation.value = routine.toRoutineLocationOrNull()
                         navController.navigate(Screen.MapPicker.route)
                     },
                     onDelete = {
-                        GeofenceManager(context).removeGeofenceForRoutine(routine.id)
+                        geofenceManager.removeGeofenceForRoutine(routine.id)
                         routineViewModel.deleteRoutineById(routine.id)
                         navController.popBackStack()
                     },
@@ -445,7 +482,6 @@ fun AppRoot(
                         val updatedRoutine = routine.copy(notificationsEnabled = enabled)
                         routineViewModel.upsertRoutine(updatedRoutine)
 
-                        val geofenceManager = GeofenceManager(context)
                         if (enabled) {
                             geofenceManager.addGeofenceForRoutine(updatedRoutine)
                         } else {

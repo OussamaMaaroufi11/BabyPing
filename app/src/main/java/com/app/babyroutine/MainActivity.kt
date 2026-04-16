@@ -23,8 +23,7 @@ class MainActivity : ComponentActivity() {
     private val requestNotificationPermission = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { _ ->
-        // Rien ici pour l’instant.
-        // La notification sera testée manuellement depuis l’écran Notifications.
+        // La notification pourra être testée depuis l’écran Notifications.
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
@@ -33,17 +32,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
 
         NotificationHelper.createNotificationChannel(this)
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            val granted = ContextCompat.checkSelfPermission(
-                this,
-                Manifest.permission.POST_NOTIFICATIONS
-            ) == PackageManager.PERMISSION_GRANTED
-
-            if (!granted) {
-                requestNotificationPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
-            }
-        }
+        requestNotificationPermissionIfNeeded()
 
         setContent {
             var isDarkMode by remember { mutableStateOf(false) }
@@ -58,6 +47,19 @@ class MainActivity : ComponentActivity() {
                     }
                 )
             }
+        }
+    }
+
+    private fun requestNotificationPermissionIfNeeded() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return
+
+        val permissionGranted = ContextCompat.checkSelfPermission(
+            this,
+            Manifest.permission.POST_NOTIFICATIONS
+        ) == PackageManager.PERMISSION_GRANTED
+
+        if (!permissionGranted) {
+            requestNotificationPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
         }
     }
 }

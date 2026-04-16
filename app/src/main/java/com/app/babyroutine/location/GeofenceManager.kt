@@ -6,6 +6,7 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.os.Build
 import androidx.core.content.ContextCompat
 import com.app.babyroutine.model.Routine
 import com.google.android.gms.location.Geofence
@@ -20,28 +21,33 @@ class GeofenceManager(
     private val geofencingClient: GeofencingClient =
         LocationServices.getGeofencingClient(context)
 
-    private fun hasLocationPermission(): Boolean {
-        val fine = ContextCompat.checkSelfPermission(
+    private fun hasRequiredLocationPermission(): Boolean {
+        val hasFineLocation = ContextCompat.checkSelfPermission(
             context,
             Manifest.permission.ACCESS_FINE_LOCATION
         ) == PackageManager.PERMISSION_GRANTED
 
-        val background = ContextCompat.checkSelfPermission(
-            context,
-            Manifest.permission.ACCESS_BACKGROUND_LOCATION
-        ) == PackageManager.PERMISSION_GRANTED
+        val hasBackgroundLocation =
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                ContextCompat.checkSelfPermission(
+                    context,
+                    Manifest.permission.ACCESS_BACKGROUND_LOCATION
+                ) == PackageManager.PERMISSION_GRANTED
+            } else {
+                true
+            }
 
-        return fine && background
+        return hasFineLocation && hasBackgroundLocation
     }
 
-    private fun geofencePendingIntent(routineTitle: String): PendingIntent {
+    private fun geofencePendingIntent(routine: Routine): PendingIntent {
         val intent = Intent(context, GeofenceBroadcastReceiver::class.java).apply {
-            putExtra("routine_title", routineTitle)
+            putExtra(GeofenceBroadcastReceiver.EXTRA_ROUTINE_TITLE, routine.title)
         }
 
         return PendingIntent.getBroadcast(
             context,
-            routineTitle.hashCode(),
+            routine.id.hashCode(),
             intent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
@@ -52,11 +58,14 @@ class GeofenceManager(
         val latitude = routine.latitude ?: return
         val longitude = routine.longitude ?: return
 
-        if (!hasLocationPermission()) return
+        if (!routine.notificationsEnabled) return
+        if (!hasRequiredLocationPermission()) return
+
+        val safeRadius = routine.radius.coerceIn(50f, 500f)
 
         val geofence = Geofence.Builder()
             .setRequestId(routine.id)
-            .setCircularRegion(latitude, longitude, routine.radius)
+            .setCircularRegion(latitude, longitude, safeRadius)
             .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_ENTER)
             .setExpirationDuration(Geofence.NEVER_EXPIRE)
             .build()
@@ -68,11 +77,15 @@ class GeofenceManager(
 
         geofencingClient.addGeofences(
             geofencingRequest,
-            geofencePendingIntent(routine.title)
+            geofencePendingIntent(routine)
         )
     }
 
     fun removeGeofenceForRoutine(routineId: String) {
         geofencingClient.removeGeofences(listOf(routineId))
+    }
+
+    private fun getAllPendingIntents(): List<PendingIntent> {
+        return emptyList()
     }
 }

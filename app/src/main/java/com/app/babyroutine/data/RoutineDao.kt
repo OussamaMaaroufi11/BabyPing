@@ -13,6 +13,15 @@ interface RoutineDao {
     @Query("SELECT * FROM routines ORDER BY time ASC")
     fun getAllRoutines(): Flow<List<Routine>>
 
+    @Query("SELECT * FROM routines WHERE id = :routineId LIMIT 1")
+    suspend fun getRoutineById(routineId: String): Routine?
+
+    @Query("SELECT * FROM routines WHERE category = :category ORDER BY time ASC")
+    fun getRoutinesByCategory(category: String): Flow<List<Routine>>
+
+    @Query("SELECT COUNT(*) FROM routines")
+    suspend fun getRoutineCount(): Int
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsertRoutine(routine: Routine)
 
@@ -22,6 +31,6 @@ interface RoutineDao {
     @Query("DELETE FROM routines WHERE id = :routineId")
     suspend fun deleteRoutineById(routineId: String)
 
-    @Query("SELECT COUNT(*) FROM routines")
-    suspend fun getRoutineCount(): Int
+    @Query("DELETE FROM routines")
+    suspend fun deleteAllRoutines()
 }

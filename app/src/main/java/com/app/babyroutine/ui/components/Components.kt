@@ -21,6 +21,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Alarm
+import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -55,7 +56,7 @@ fun CategoryMiniCard(
     val clickableModifier =
         if (onClick != null) Modifier.clickable { onClick() } else Modifier
 
-    val cardColor =
+    val cardBrush =
         if (isDark) {
             Brush.linearGradient(
                 colors = listOf(
@@ -84,13 +85,11 @@ fun CategoryMiniCard(
     ) {
         Box(
             modifier = Modifier
-                .background(cardColor)
+                .background(cardBrush)
                 .padding(12.dp)
         ) {
             Column(modifier = Modifier.fillMaxWidth()) {
-
                 Row(verticalAlignment = Alignment.CenterVertically) {
-
                     Box(
                         modifier = Modifier
                             .size(36.dp)
@@ -181,9 +180,7 @@ fun ReminderList(
     ) {
         items(routines, key = { it.id }) { routine ->
             ReminderCard(
-                title = routine.title,
-                description = routine.description,
-                time = routine.time,
+                routine = routine,
                 frequencyText = frequencyTextProvider(routine),
                 onClick = { onRoutineClick(routine) }
             )
@@ -193,9 +190,7 @@ fun ReminderList(
 
 @Composable
 fun ReminderCard(
-    title: String,
-    description: String,
-    time: String,
+    routine: Routine,
     frequencyText: String,
     onClick: () -> Unit
 ) {
@@ -225,8 +220,8 @@ fun ReminderCard(
         )
     )
 
-    val lightColor = lightColors[(title.hashCode().absoluteValue) % lightColors.size]
-    val darkBrush = darkBrushes[(title.hashCode().absoluteValue) % darkBrushes.size]
+    val lightColor = lightColors[(routine.title.hashCode().absoluteValue) % lightColors.size]
+    val darkBrush = darkBrushes[(routine.title.hashCode().absoluteValue) % darkBrushes.size]
 
     Surface(
         shape = shape,
@@ -247,20 +242,18 @@ fun ReminderCard(
                 .padding(14.dp)
         ) {
             Column {
-
                 Row(verticalAlignment = Alignment.CenterVertically) {
-
                     Text(
-                        text = title,
+                        text = routine.title,
                         modifier = Modifier.weight(1f),
                         fontWeight = FontWeight.Medium,
                         color = colors.onSurface
                     )
 
                     Text(
-                        text = time,
+                        text = routine.time,
                         fontWeight = FontWeight.Bold,
-                        color = if (isDark) colors.onSurface else colors.onSurface
+                        color = colors.onSurface
                     )
 
                     Spacer(modifier = Modifier.width(10.dp))
@@ -272,11 +265,11 @@ fun ReminderCard(
                     )
                 }
 
-                if (description.isNotBlank()) {
+                if (routine.description.isNotBlank()) {
                     Spacer(modifier = Modifier.height(6.dp))
 
                     Text(
-                        text = description,
+                        text = routine.description,
                         color = colors.onSurfaceVariant,
                         style = MaterialTheme.typography.bodySmall,
                         maxLines = 2
@@ -286,7 +279,6 @@ fun ReminderCard(
                 Spacer(modifier = Modifier.height(8.dp))
 
                 Row(verticalAlignment = Alignment.CenterVertically) {
-
                     Text(
                         text = frequencyText,
                         color = colors.onSurfaceVariant,
@@ -294,11 +286,24 @@ fun ReminderCard(
                         modifier = Modifier.weight(1f)
                     )
 
-                    Icon(
-                        imageVector = Icons.Default.Notifications,
-                        contentDescription = null,
-                        tint = if (isDark) colors.primary else colors.onSurface
-                    )
+                    if (routine.hasLocationTrigger) {
+                        Icon(
+                            imageVector = Icons.Default.LocationOn,
+                            contentDescription = "Déclenchement par lieu",
+                            tint = if (isDark) colors.primary else colors.onSurface,
+                            modifier = Modifier.size(18.dp)
+                        )
+
+                        Spacer(modifier = Modifier.width(8.dp))
+                    }
+
+                    if (routine.notificationsEnabled) {
+                        Icon(
+                            imageVector = Icons.Default.Notifications,
+                            contentDescription = "Notifications activées",
+                            tint = if (isDark) colors.primary else colors.onSurface
+                        )
+                    }
                 }
             }
         }

@@ -23,6 +23,8 @@ object NotificationHelper {
     private const val CHANNEL_NAME = "Rappels BabyPing"
     private const val CHANNEL_DESCRIPTION = "Notifications pour les routines BabyPing"
 
+    const val EXTRA_OPEN_ROUTINE_ID = "extra_open_routine_id"
+
     fun createNotificationChannel(
         context: Context,
         soundEnabled: Boolean = true,
@@ -69,6 +71,7 @@ object NotificationHelper {
         context: Context,
         title: String,
         message: String,
+        routineId: String? = null,
         notificationId: Int = abs(System.currentTimeMillis().toInt()),
         vibrationEnabled: Boolean = true
     ) {
@@ -83,6 +86,9 @@ object NotificationHelper {
 
         val openAppIntent = Intent(context, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+            routineId?.let {
+                putExtra(EXTRA_OPEN_ROUTINE_ID, it)
+            }
         }
 
         val pendingIntent = PendingIntent.getActivity(
@@ -96,10 +102,7 @@ object NotificationHelper {
             .setSmallIcon(R.drawable.babyping)
             .setContentTitle(title)
             .setContentText(message)
-            .setStyle(
-                NotificationCompat.BigTextStyle()
-                    .bigText(message)
-            )
+            .setStyle(NotificationCompat.BigTextStyle().bigText(message))
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setContentIntent(pendingIntent)
             .setAutoCancel(true)

@@ -24,6 +24,7 @@ import com.app.babyroutine.model.HomeTab
 import com.app.babyroutine.model.Routine
 import com.app.babyroutine.model.RoutineLocation
 import com.app.babyroutine.notifications.NotificationHelper
+import com.app.babyroutine.notifications.RoutineScheduler
 import com.app.babyroutine.ui.screens.AddRoutineScreen
 import com.app.babyroutine.ui.screens.BabyPingHomeScreen
 import com.app.babyroutine.ui.screens.CategoryListScreen
@@ -116,6 +117,8 @@ private fun Routine.toRoutineLocationOrNull(): RoutineLocation? {
 fun AppRoot(
     isDarkMode: Boolean,
     onDarkModeChange: (Boolean) -> Unit,
+    openRoutineId: String? = null,
+    onRoutineIntentConsumed: () -> Unit = {},
     routineViewModel: RoutineViewModel = viewModel()
 ) {
     val navController = rememberNavController()
@@ -151,13 +154,6 @@ fun AppRoot(
         mutableStateListOf()
     }
 
-    LaunchedEffect(Unit) {
-        if (ignoredRemindersToday.isEmpty()) {
-            ignoredRemindersToday.add("Donner le biberon au bébé")
-            ignoredRemindersToday.add("Faire une petite balade")
-        }
-    }
-
     val totalToday = routines.size
     val doneToday = doneTodayIds.size.coerceAtMost(totalToday)
     val progress = if (totalToday == 0) 0f else doneToday.toFloat() / totalToday.toFloat()
@@ -187,6 +183,16 @@ fun AppRoot(
             } else {
                 geofenceManager.removeGeofenceForRoutine(routine.id)
             }
+        }
+    }
+
+    LaunchedEffect(openRoutineId, routines) {
+        val targetId = openRoutineId ?: return@LaunchedEffect
+        val routineExists = routines.any { it.id == targetId }
+
+        if (routineExists) {
+            navController.navigate(Screen.RoutineOptions.route(targetId))
+            onRoutineIntentConsumed()
         }
     }
 
@@ -249,6 +255,10 @@ fun AppRoot(
                     navController.navigate(Screen.EditRoutine.route(routineId))
                 },
                 onDelete = { routineId ->
+                    val routineToDelete = routines.firstOrNull { it.id == routineId }
+                    if (routineToDelete != null) {
+                        RoutineScheduler.cancelRoutineNotification(context, routineToDelete)
+                    }
                     geofenceManager.removeGeofenceForRoutine(routineId)
                     routineViewModel.deleteRoutineById(routineId)
                 },
@@ -402,6 +412,7 @@ fun AppRoot(
                     } ?: newRoutine
 
                     routineViewModel.upsertRoutine(finalRoutine)
+                    RoutineScheduler.scheduleRoutineNotification(context, finalRoutine)
                     pendingPickedLocation.value = null
                     navController.popBackStack()
                 },
@@ -441,7 +452,9 @@ fun AppRoot(
                             )
                         } ?: updatedRoutine
 
+                        RoutineScheduler.cancelRoutineNotification(context, routineToEdit)
                         routineViewModel.upsertRoutine(finalRoutine)
+                        RoutineScheduler.scheduleRoutineNotification(context, finalRoutine)
                         pendingPickedLocation.value = null
                         navController.popBackStack()
                     },
@@ -474,6 +487,7 @@ fun AppRoot(
                         navController.navigate(Screen.MapPicker.route)
                     },
                     onDelete = {
+                        RoutineScheduler.cancelRoutineNotification(context, routine)
                         geofenceManager.removeGeofenceForRoutine(routine.id)
                         routineViewModel.deleteRoutineById(routine.id)
                         navController.popBackStack()
@@ -483,8 +497,10 @@ fun AppRoot(
                         routineViewModel.upsertRoutine(updatedRoutine)
 
                         if (enabled) {
+                            RoutineScheduler.scheduleRoutineNotification(context, updatedRoutine)
                             geofenceManager.addGeofenceForRoutine(updatedRoutine)
                         } else {
+                            RoutineScheduler.cancelRoutineNotification(context, updatedRoutine)
                             geofenceManager.removeGeofenceForRoutine(updatedRoutine.id)
                         }
                     }

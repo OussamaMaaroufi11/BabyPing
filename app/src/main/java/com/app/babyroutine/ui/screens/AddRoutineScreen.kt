@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
@@ -45,7 +46,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -57,6 +57,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.app.babyroutine.R
+import com.app.babyroutine.domain.RoutineValidator
 import com.app.babyroutine.model.Frequency
 import com.app.babyroutine.model.Priority
 import com.app.babyroutine.model.Routine
@@ -457,29 +458,32 @@ fun AddRoutineScreen(
 
                         Button(
                             onClick = {
-                                if (title.isBlank() || time.isBlank() || selectedCategory.isBlank()) {
-                                    errorMessage = "Veuillez remplir le nom, la catégorie et l'heure."
+                                val routineId = initialRoutine?.id ?: UUID.randomUUID().toString()
+
+                                val routineToValidate = Routine(
+                                    id = routineId,
+                                    title = title.trim(),
+                                    description = description.trim(),
+                                    time = time,
+                                    category = selectedCategory,
+                                    frequency = frequency,
+                                    priority = priority,
+                                    latitude = selectedLocation?.latitude ?: initialRoutine?.latitude,
+                                    longitude = selectedLocation?.longitude ?: initialRoutine?.longitude,
+                                    radius = selectedLocation?.radius ?: initialRoutine?.radius ?: 100f,
+                                    locationName = selectedLocation?.locationName ?: initialRoutine?.locationName,
+                                    notificationsEnabled = initialRoutine?.notificationsEnabled ?: true
+                                )
+
+                                val validation = RoutineValidator.validateForSave(routineToValidate)
+
+                                if (!validation.isValid) {
+                                    errorMessage = validation.message
                                     return@Button
                                 }
 
-                                val routineId = initialRoutine?.id ?: UUID.randomUUID().toString()
-
-                                onSave(
-                                    Routine(
-                                        id = routineId,
-                                        title = title.trim(),
-                                        description = description.trim(),
-                                        time = time,
-                                        category = selectedCategory,
-                                        frequency = frequency,
-                                        priority = priority,
-                                        latitude = selectedLocation?.latitude ?: initialRoutine?.latitude,
-                                        longitude = selectedLocation?.longitude ?: initialRoutine?.longitude,
-                                        radius = selectedLocation?.radius ?: initialRoutine?.radius ?: 100f,
-                                        locationName = selectedLocation?.locationName ?: initialRoutine?.locationName,
-                                        notificationsEnabled = initialRoutine?.notificationsEnabled ?: true
-                                    )
-                                )
+                                errorMessage = null
+                                onSave(routineToValidate)
                             },
                             shape = RoundedCornerShape(28.dp),
                             colors = ButtonDefaults.buttonColors(

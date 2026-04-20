@@ -18,13 +18,12 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import com.app.babyroutine.location.GeofenceManager
+import com.app.babyroutine.domain.RoutineValidator
 import com.app.babyroutine.model.Frequency
 import com.app.babyroutine.model.HomeTab
 import com.app.babyroutine.model.Routine
 import com.app.babyroutine.model.RoutineLocation
 import com.app.babyroutine.notifications.NotificationHelper
-import com.app.babyroutine.notifications.RoutineScheduler
 import com.app.babyroutine.ui.screens.AddRoutineScreen
 import com.app.babyroutine.ui.screens.BabyPingHomeScreen
 import com.app.babyroutine.ui.screens.CategoryListScreen
@@ -70,6 +69,108 @@ sealed class Screen(val route: String) {
 
     data object CategoryList : Screen("category/{category}") {
         fun route(category: String): String = "category/$category"
+    }
+}
+
+private data class DemoConfig(
+    val enabled: Boolean = true
+)
+
+private data class StatsUiState(
+    val totalToday: Int,
+    val doneToday: Int,
+    val progress: Float,
+    val completedPercent: Int,
+    val totalRoutinesForStats: Int,
+    val weekProgress: List<Int>,
+    val ignoredRemindersToday: List<String>,
+    val ignoredYesterdayCount: Int,
+    val totalReceivedCount: Int,
+    val ignoredPerDay: List<Int>
+)
+
+private object DemoStatsProvider {
+    val ignoredReminders = listOf(
+        "Donner le biberon au bébé",
+        "Faire une petite balade",
+        "Rendez-vous chez le pédiatre"
+    )
+
+    val weekProgress = listOf(100, 80, 80, 80, 80, 50, 70)
+    val ignoredPerDay = listOf(1, 3, 0, 2, 1, 4, 2)
+
+    fun build(totalToday: Int, doneToday: Int, progress: Float): StatsUiState {
+        return StatsUiState(
+            totalToday = totalToday,
+            doneToday = doneToday,
+            progress = progress,
+            completedPercent = 80,
+            totalRoutinesForStats = 7,
+            weekProgress = weekProgress,
+            ignoredRemindersToday = ignoredReminders,
+            ignoredYesterdayCount = 3,
+            totalReceivedCount = 7,
+            ignoredPerDay = ignoredPerDay
+        )
+    }
+}
+
+private object StatsCalculator {
+
+    fun calculateProgress(totalToday: Int, doneToday: Int): Float {
+        return if (totalToday == 0) 0f else doneToday.toFloat() / totalToday.toFloat()
+    }
+
+    fun calculateCompletedPercent(totalToday: Int, doneToday: Int): Int {
+        return if (totalToday == 0) 0 else (doneToday * 100) / totalToday
+    }
+
+    fun calculateWeekProgress(
+        weekKeys: List<String>,
+        doneByDate: Map<String, List<String>>,
+        routinesCount: Int
+    ): List<Int> {
+        return weekKeys.map { key ->
+            val doneCount = doneByDate[key]?.size ?: 0
+            if (routinesCount == 0) 0
+            else (doneCount.coerceAtMost(routinesCount) * 100) / routinesCount
+        }
+    }
+
+    fun calculateIgnoredPerDay(
+        weekKeys: List<String>,
+        ignoredByDate: Map<String, List<String>>
+    ): List<Int> {
+        return weekKeys.map { key ->
+            ignoredByDate[key]?.size ?: 0
+        }
+    }
+
+    fun buildRealState(
+        routinesCount: Int,
+        doneTodayIds: List<String>,
+        ignoredToday: List<String>,
+        ignoredYesterdayCount: Int,
+        weekProgress: List<Int>,
+        ignoredPerDay: List<Int>
+    ): StatsUiState {
+        val totalToday = routinesCount
+        val doneToday = doneTodayIds.size.coerceAtMost(totalToday)
+        val progress = calculateProgress(totalToday, doneToday)
+        val completedPercent = calculateCompletedPercent(totalToday, doneToday)
+
+        return StatsUiState(
+            totalToday = totalToday,
+            doneToday = doneToday,
+            progress = progress,
+            completedPercent = completedPercent,
+            totalRoutinesForStats = routinesCount,
+            weekProgress = weekProgress,
+            ignoredRemindersToday = ignoredToday,
+            ignoredYesterdayCount = ignoredYesterdayCount,
+            totalReceivedCount = routinesCount,
+            ignoredPerDay = ignoredPerDay
+        )
     }
 }
 
@@ -123,9 +224,14 @@ fun AppRoot(
 ) {
     val navController = rememberNavController()
     val context = LocalContext.current
-    val geofenceManager = remember { GeofenceManager(context) }
+    val dependencies = remember(context) { createAppDependencies(context) }
+    val notificationCoordinator = dependencies.notificationCoordinator
+
+    val demoConfig = remember { DemoConfig(enabled = true) }
 
     val notificationsEnabled = remember { mutableStateOf(true) }
+    val soundEnabled = remember { mutableStateOf(true) }
+    val vibrationEnabled = remember { mutableStateOf(true) }
 
     val profileName = remember { mutableStateOf("Oussama Maaroufi") }
     val profileEmail = remember { mutableStateOf("oussama@email.com") }
@@ -141,49 +247,57 @@ fun AppRoot(
         mutableStateMapOf<String, SnapshotStateList<String>>()
     }
 
-    val soundEnabled = remember { mutableStateOf(true) }
-    val vibrationEnabled = remember { mutableStateOf(true) }
-
     val currentDateKey = todayKey()
+    val weekKeys = currentWeekKeys()
 
     val doneTodayIds = doneByDate.getOrPut(currentDateKey) {
         mutableStateListOf()
     }
 
-    val ignoredRemindersToday = ignoredByDate.getOrPut(currentDateKey) {
+    val realIgnoredRemindersToday = ignoredByDate.getOrPut(currentDateKey) {
         mutableStateListOf()
     }
 
-    val totalToday = routines.size
-    val doneToday = doneTodayIds.size.coerceAtMost(totalToday)
-    val progress = if (totalToday == 0) 0f else doneToday.toFloat() / totalToday.toFloat()
-    val completedPercent = if (totalToday == 0) 0 else ((doneToday * 100) / totalToday)
-
     val pendingPickedLocation = remember { mutableStateOf<RoutineLocation?>(null) }
 
-    val weekKeys = currentWeekKeys()
-
-    val weekProgress = weekKeys.map { key ->
-        val doneCount = doneByDate[key]?.size ?: 0
-        if (routines.isEmpty()) 0 else ((doneCount.coerceAtMost(routines.size) * 100) / routines.size)
+    val yesterdayKey = if (weekKeys.size >= 2) {
+        weekKeys[weekKeys.lastIndex - 1]
+    } else {
+        currentDateKey
     }
 
-    val ignoredPerDay = weekKeys.map { key ->
-        ignoredByDate[key]?.size ?: 0
-    }
+    val realWeekProgress = StatsCalculator.calculateWeekProgress(
+        weekKeys = weekKeys,
+        doneByDate = doneByDate,
+        routinesCount = routines.size
+    )
 
-    val yesterdayKey = if (weekKeys.size >= 2) weekKeys[weekKeys.lastIndex - 1] else currentDateKey
-    val ignoredYesterdayCount = ignoredByDate[yesterdayKey]?.size ?: 0
-    val totalReceivedCount = routines.size
+    val realIgnoredPerDay = StatsCalculator.calculateIgnoredPerDay(
+        weekKeys = weekKeys,
+        ignoredByDate = ignoredByDate
+    )
+
+    val realStats = StatsCalculator.buildRealState(
+        routinesCount = routines.size,
+        doneTodayIds = doneTodayIds,
+        ignoredToday = realIgnoredRemindersToday,
+        ignoredYesterdayCount = ignoredByDate[yesterdayKey]?.size ?: 0,
+        weekProgress = realWeekProgress,
+        ignoredPerDay = realIgnoredPerDay
+    )
+
+    val statsState = if (demoConfig.enabled) {
+        DemoStatsProvider.build(
+            totalToday = realStats.totalToday,
+            doneToday = realStats.doneToday,
+            progress = realStats.progress
+        )
+    } else {
+        realStats
+    }
 
     LaunchedEffect(routines) {
-        routines.forEach { routine ->
-            if (routine.notificationsEnabled && routine.hasLocationTrigger) {
-                geofenceManager.addGeofenceForRoutine(routine)
-            } else {
-                geofenceManager.removeGeofenceForRoutine(routine.id)
-            }
-        }
+        notificationCoordinator.syncAll(routines)
     }
 
     LaunchedEffect(openRoutineId, routines) {
@@ -257,9 +371,8 @@ fun AppRoot(
                 onDelete = { routineId ->
                     val routineToDelete = routines.firstOrNull { it.id == routineId }
                     if (routineToDelete != null) {
-                        RoutineScheduler.cancelRoutineNotification(context, routineToDelete)
+                        notificationCoordinator.onRoutineDeleted(routineToDelete)
                     }
-                    geofenceManager.removeGeofenceForRoutine(routineId)
                     routineViewModel.deleteRoutineById(routineId)
                 },
                 frequencyTextProvider = { routine ->
@@ -283,19 +396,19 @@ fun AppRoot(
                         HomeTab.Suivi -> Unit
                     }
                 },
-                total = totalToday,
-                done = doneToday,
-                progress = progress
+                total = statsState.totalToday,
+                done = statsState.doneToday,
+                progress = statsState.progress
             )
         }
 
         composable(Screen.Statistics.route) {
             StatisticsScreen(
                 onBack = { navController.popBackStack() },
-                completedPercent = completedPercent,
-                ignoredRemindersCount = ignoredRemindersToday.size,
-                totalRoutines = routines.size,
-                weekProgress = weekProgress,
+                completedPercent = statsState.completedPercent,
+                ignoredRemindersCount = statsState.ignoredRemindersToday.size,
+                totalRoutines = statsState.totalRoutinesForStats,
+                weekProgress = statsState.weekProgress,
                 onIgnoredRemindersClick = {
                     navController.navigate(Screen.IgnoredReminders.route)
                 }
@@ -305,10 +418,10 @@ fun AppRoot(
         composable(Screen.IgnoredReminders.route) {
             IgnoredRemindersScreen(
                 onBack = { navController.popBackStack() },
-                ignoredReminders = ignoredRemindersToday,
-                ignoredYesterdayCount = ignoredYesterdayCount,
-                totalReceivedCount = totalReceivedCount,
-                ignoredPerDay = ignoredPerDay
+                ignoredReminders = statsState.ignoredRemindersToday,
+                ignoredYesterdayCount = statsState.ignoredYesterdayCount,
+                totalReceivedCount = statsState.totalReceivedCount,
+                ignoredPerDay = statsState.ignoredPerDay
             )
         }
 
@@ -411,8 +524,13 @@ fun AppRoot(
                         )
                     } ?: newRoutine
 
+                    val validation = RoutineValidator.validateForSave(finalRoutine)
+                    if (!validation.isValid) {
+                        return@AddRoutineScreen
+                    }
+
                     routineViewModel.upsertRoutine(finalRoutine)
-                    RoutineScheduler.scheduleRoutineNotification(context, finalRoutine)
+                    notificationCoordinator.onRoutineCreated(finalRoutine)
                     pendingPickedLocation.value = null
                     navController.popBackStack()
                 },
@@ -452,9 +570,16 @@ fun AppRoot(
                             )
                         } ?: updatedRoutine
 
-                        RoutineScheduler.cancelRoutineNotification(context, routineToEdit)
+                        val validation = RoutineValidator.validateForSave(finalRoutine)
+                        if (!validation.isValid) {
+                            return@AddRoutineScreen
+                        }
+
                         routineViewModel.upsertRoutine(finalRoutine)
-                        RoutineScheduler.scheduleRoutineNotification(context, finalRoutine)
+                        notificationCoordinator.onRoutineUpdated(
+                            oldRoutine = routineToEdit,
+                            newRoutine = finalRoutine
+                        )
                         pendingPickedLocation.value = null
                         navController.popBackStack()
                     },
@@ -487,22 +612,14 @@ fun AppRoot(
                         navController.navigate(Screen.MapPicker.route)
                     },
                     onDelete = {
-                        RoutineScheduler.cancelRoutineNotification(context, routine)
-                        geofenceManager.removeGeofenceForRoutine(routine.id)
+                        notificationCoordinator.onRoutineDeleted(routine)
                         routineViewModel.deleteRoutineById(routine.id)
                         navController.popBackStack()
                     },
                     onToggleNotifications = { enabled ->
                         val updatedRoutine = routine.copy(notificationsEnabled = enabled)
                         routineViewModel.upsertRoutine(updatedRoutine)
-
-                        if (enabled) {
-                            RoutineScheduler.scheduleRoutineNotification(context, updatedRoutine)
-                            geofenceManager.addGeofenceForRoutine(updatedRoutine)
-                        } else {
-                            RoutineScheduler.cancelRoutineNotification(context, updatedRoutine)
-                            geofenceManager.removeGeofenceForRoutine(updatedRoutine.id)
-                        }
+                        notificationCoordinator.onNotificationsToggled(updatedRoutine)
                     }
                 )
             } else {

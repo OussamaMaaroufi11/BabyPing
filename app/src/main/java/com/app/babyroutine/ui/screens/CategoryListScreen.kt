@@ -84,7 +84,7 @@ fun CategoryListScreen(
         colors = listOf(
             colors.background,
             colors.surface,
-            colors.surfaceVariant.copy(alpha = 0.4f),
+            colors.surfaceVariant.copy(alpha = 0.35f),
             colors.background
         )
     )
@@ -147,39 +147,9 @@ fun CategoryListScreen(
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 item {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(140.dp)
-                            .clip(RoundedCornerShape(18.dp))
-                    ) {
-                        Image(
-                            painter = painterResource(id = R.drawable.kids_banner),
-                            contentDescription = "Bannière catégorie",
-                            modifier = Modifier.fillMaxSize()
-                        )
-
-                        Box(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .background(
-                                    Brush.verticalGradient(
-                                        colors = listOf(
-                                            colors.scrim.copy(alpha = 0.28f),
-                                            colors.scrim.copy(alpha = 0.60f)
-                                        )
-                                    )
-                                )
-                        )
-
-                        Text(
-                            text = categoryTitle.uppercase(),
-                            color = Color.White,
-                            fontWeight = FontWeight.ExtraBold,
-                            style = MaterialTheme.typography.headlineSmall,
-                            modifier = Modifier.align(Alignment.Center)
-                        )
-                    }
+                    CategoryBanner(
+                        categoryTitle = categoryTitle
+                    )
                 }
 
                 item {
@@ -226,6 +196,56 @@ fun CategoryListScreen(
                 Text(
                     text = "Quitter",
                     fontWeight = FontWeight.SemiBold
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun CategoryBanner(
+    categoryTitle: String
+) {
+    val colors = MaterialTheme.colorScheme
+
+    Surface(
+        shape = RoundedCornerShape(24.dp),
+        color = colors.surface.copy(alpha = 0.96f),
+        shadowElevation = 8.dp,
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(10.dp)
+                .height(146.dp)
+                .clip(RoundedCornerShape(20.dp))
+        ) {
+            Image(
+                painter = painterResource(id = categoryBannerRes(categoryTitle)),
+                contentDescription = "Bannière catégorie",
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.Crop
+            )
+
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.White.copy(alpha = 0.16f))
+            )
+
+            Box(
+                modifier = Modifier
+                    .align(Alignment.Center)
+                    .clip(RoundedCornerShape(18.dp))
+                    .background(Color(0xCC3F3C4E))
+                    .padding(horizontal = 20.dp, vertical = 10.dp)
+            ) {
+                Text(
+                    text = categoryTitle.uppercase(),
+                    color = Color.White,
+                    fontWeight = FontWeight.ExtraBold,
+                    style = MaterialTheme.typography.headlineSmall
                 )
             }
         }
@@ -418,5 +438,16 @@ private fun RoutineItemCard(
                 }
             }
         )
+    }
+}
+
+private fun categoryBannerRes(categoryTitle: String): Int {
+    return when (categoryTitle.trim().lowercase()) {
+        "quotidiens" -> R.drawable.kids_banner
+        "programmes" -> R.drawable.prog_banner
+        "santé" -> R.drawable.sante_banner
+        "activités" -> R.drawable.activite_banner
+        "courses" -> R.drawable.course_banner
+        else -> R.drawable.routines_banner
     }
 }

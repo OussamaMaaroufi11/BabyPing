@@ -24,23 +24,27 @@ class MainActivity : ComponentActivity() {
 
     private val requestNotificationPermission = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
-    ) { _ -> }
+    ) { }
 
     private var openRoutineIdState by mutableStateOf<String?>(null)
 
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
         enableEdgeToEdge()
 
         openRoutineIdState = intent?.getStringExtra(NotificationHelper.EXTRA_OPEN_ROUTINE_ID)
 
         NotificationHelper.createNotificationChannel(this)
+
         requestNotificationPermissionIfNeeded()
         requestExactAlarmPermissionIfNeeded()
 
         setContent {
-            var isDarkMode by androidx.compose.runtime.remember { mutableStateOf(false) }
+            var isDarkMode by androidx.compose.runtime.remember {
+                mutableStateOf(false)
+            }
 
             BabyRoutineAppTheme(
                 darkTheme = isDarkMode
@@ -61,6 +65,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
+
         setIntent(intent)
         openRoutineIdState = intent.getStringExtra(NotificationHelper.EXTRA_OPEN_ROUTINE_ID)
     }
@@ -82,9 +87,12 @@ class MainActivity : ComponentActivity() {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) return
 
         val alarmManager = getSystemService(ALARM_SERVICE) as AlarmManager
+
         if (alarmManager.canScheduleExactAlarms()) return
 
-        val intent = Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM)
-        startActivity(intent)
+        runCatching {
+            val intent = Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM)
+            startActivity(intent)
+        }
     }
 }

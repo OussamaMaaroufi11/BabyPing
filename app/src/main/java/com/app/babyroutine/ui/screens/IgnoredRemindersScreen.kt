@@ -1,7 +1,6 @@
 package com.app.babyroutine.ui.screens
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -12,7 +11,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -33,6 +31,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.times
@@ -47,8 +46,13 @@ fun IgnoredRemindersScreen(
     ignoredPerDay: List<Int>
 ) {
     val colors = MaterialTheme.colorScheme
-    val safeIgnoredPerDay = ignoredPerDay.take(7).let {
-        if (it.size == 7) it else List(7) { index -> it.getOrElse(index) { 0 } }
+
+    val safeIgnoredPerDay = ignoredPerDay.take(7).let { values ->
+        if (values.size == 7) {
+            values
+        } else {
+            List(7) { index -> values.getOrElse(index) { 0 } }
+        }
     }
 
     val backgroundBrush = Brush.verticalGradient(
@@ -160,7 +164,7 @@ private fun SmallSummaryCard(
     subtitle: String,
     accent: Color,
     bg: Color,
-    icon: androidx.compose.ui.graphics.vector.ImageVector
+    icon: ImageVector
 ) {
     Surface(
         modifier = modifier,
@@ -175,7 +179,7 @@ private fun SmallSummaryCard(
         ) {
             Icon(
                 imageVector = icon,
-                contentDescription = null,
+                contentDescription = title,
                 tint = accent,
                 modifier = Modifier.size(24.dp)
             )
@@ -235,6 +239,8 @@ private fun DailyEvolutionCard(
                 verticalAlignment = Alignment.Bottom
             ) {
                 values.forEachIndexed { index, value ->
+                    val barHeight = (value.coerceAtLeast(1)) * 14.dp
+
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.Bottom
@@ -249,8 +255,7 @@ private fun DailyEvolutionCard(
 
                         Box(
                             modifier = Modifier
-                                .height((value.coerceAtLeast(1)) * 14.dp)
-                                .size(width = 20.dp, height = (value.coerceAtLeast(1)) * 14.dp)
+                                .size(width = 20.dp, height = barHeight)
                                 .background(
                                     color = Color(0xFFF49898),
                                     shape = RoundedCornerShape(topStart = 6.dp, topEnd = 6.dp)
@@ -276,6 +281,7 @@ private fun LatestIgnoredCard(
     reminders: List<String>
 ) {
     val colors = MaterialTheme.colorScheme
+
     val backgrounds = listOf(
         Color(0xFFE5EEF8),
         Color(0xFFF4EBCF),
@@ -337,6 +343,7 @@ private fun LatestIgnoredCard(
                                         fontWeight = FontWeight.Medium,
                                         color = Color(0xFF2A2A2A)
                                     )
+
                                     Text(
                                         text = "Aujourd’hui",
                                         style = MaterialTheme.typography.labelMedium,
@@ -344,14 +351,12 @@ private fun LatestIgnoredCard(
                                     )
                                 }
 
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Icon(
-                                        imageVector = Icons.Default.Notifications,
-                                        contentDescription = null,
-                                        tint = Color(0xFF2A2A2A),
-                                        modifier = Modifier.size(18.dp)
-                                    )
-                                }
+                                Icon(
+                                    imageVector = Icons.Default.Notifications,
+                                    contentDescription = "Notification ignorée",
+                                    tint = Color(0xFF2A2A2A),
+                                    modifier = Modifier.size(18.dp)
+                                )
                             }
                         }
                     }

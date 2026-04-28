@@ -11,6 +11,10 @@ import java.util.Calendar
 
 object RoutineScheduler {
 
+    const val EXTRA_ROUTINE_ID = "routine_id"
+    const val EXTRA_ROUTINE_TITLE = "routine_title"
+    const val EXTRA_ROUTINE_MESSAGE = "routine_message"
+
     fun scheduleRoutineNotification(
         context: Context,
         routine: Routine
@@ -23,14 +27,16 @@ object RoutineScheduler {
         val hour = parts[0].toIntOrNull() ?: return
         val minute = parts[1].toIntOrNull() ?: return
 
+        if (hour !in 0..23 || minute !in 0..59) return
+
         val alarmManager =
             context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
 
         val intent = Intent(context, RoutineAlarmReceiver::class.java).apply {
-            putExtra("routine_id", routine.id)
-            putExtra("routine_title", routine.title)
+            putExtra(EXTRA_ROUTINE_ID, routine.id)
+            putExtra(EXTRA_ROUTINE_TITLE, routine.title)
             putExtra(
-                "routine_message",
+                EXTRA_ROUTINE_MESSAGE,
                 routine.description.ifBlank {
                     "Il est temps d’effectuer votre routine."
                 }

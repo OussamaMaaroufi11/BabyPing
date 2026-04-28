@@ -79,6 +79,8 @@ fun CategoryListScreen(
     frequencyTextProvider: (Routine) -> String
 ) {
     val colors = MaterialTheme.colorScheme
+    val listState = rememberLazyListState()
+    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
 
     val backgroundBrush = Brush.verticalGradient(
         colors = listOf(
@@ -88,9 +90,6 @@ fun CategoryListScreen(
             colors.background
         )
     )
-
-    val listState = rememberLazyListState()
-    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
 
     Scaffold(
         containerColor = colors.background,
@@ -128,7 +127,7 @@ fun CategoryListScreen(
             ) {
                 Icon(
                     imageVector = Icons.Default.Add,
-                    contentDescription = "Ajouter"
+                    contentDescription = "Ajouter une routine"
                 )
             }
         }
@@ -147,9 +146,7 @@ fun CategoryListScreen(
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 item {
-                    CategoryBanner(
-                        categoryTitle = categoryTitle
-                    )
+                    CategoryBanner(categoryTitle = categoryTitle)
                 }
 
                 item {
@@ -169,7 +166,10 @@ fun CategoryListScreen(
                         )
                     }
                 } else {
-                    items(routines, key = { it.id }) { routine ->
+                    items(
+                        items = routines,
+                        key = { routine -> routine.id }
+                    ) { routine ->
                         val isDone = doneIdsToday.contains(routine.id)
 
                         RoutineItemCard(
@@ -223,7 +223,7 @@ private fun CategoryBanner(
         ) {
             Image(
                 painter = painterResource(id = categoryBannerRes(categoryTitle)),
-                contentDescription = "Bannière catégorie",
+                contentDescription = "Bannière de la catégorie $categoryTitle",
                 modifier = Modifier.fillMaxSize(),
                 contentScale = ContentScale.Crop
             )
@@ -266,26 +266,35 @@ private fun RoutineItemCard(
 
     var showDeleteDialog by remember { mutableStateOf(false) }
 
-    val doneBackground = colors.surface
-    val doneBorder = colors.secondary
-
     val cardColor by animateColorAsState(
-        targetValue = if (done) doneBackground else colors.surface,
+        targetValue = colors.surface,
         label = "cardColor"
     )
 
     val borderColor by animateColorAsState(
-        targetValue = if (done) doneBorder else colors.outline.copy(alpha = 0.4f),
+        targetValue = if (done) {
+            colors.secondary
+        } else {
+            colors.outline.copy(alpha = 0.4f)
+        },
         label = "borderColor"
     )
 
     val mainTextColor by animateColorAsState(
-        targetValue = if (done) colors.secondary else colors.onSurface,
+        targetValue = if (done) {
+            colors.secondary
+        } else {
+            colors.onSurface
+        },
         label = "mainTextColor"
     )
 
     val secondaryTextColor by animateColorAsState(
-        targetValue = if (done) colors.secondary else colors.onSurfaceVariant,
+        targetValue = if (done) {
+            colors.secondary
+        } else {
+            colors.onSurfaceVariant
+        },
         label = "secondaryTextColor"
     )
 
@@ -301,7 +310,11 @@ private fun RoutineItemCard(
         shadowElevation = if (done) 12.dp else 6.dp,
         modifier = Modifier
             .fillMaxWidth()
-            .border(1.dp, borderColor, shape)
+            .border(
+                width = 1.dp,
+                color = borderColor,
+                shape = shape
+            )
     ) {
         Column(
             modifier = Modifier.padding(14.dp)
@@ -313,7 +326,8 @@ private fun RoutineItemCard(
                     text = routine.title,
                     modifier = Modifier.weight(1f),
                     fontWeight = FontWeight.SemiBold,
-                    color = mainTextColor
+                    color = mainTextColor,
+                    maxLines = 1
                 )
 
                 Text(
@@ -326,24 +340,26 @@ private fun RoutineItemCard(
 
                 Icon(
                     imageVector = Icons.Default.Alarm,
-                    contentDescription = null,
+                    contentDescription = "Heure de la routine",
                     tint = mainTextColor
                 )
 
                 if (routine.notificationsEnabled) {
                     Spacer(modifier = Modifier.size(6.dp))
+
                     Icon(
                         imageVector = Icons.Default.Notifications,
-                        contentDescription = null,
+                        contentDescription = "Notifications activées",
                         tint = mainTextColor
                     )
                 }
 
                 if (routine.hasLocationTrigger) {
                     Spacer(modifier = Modifier.size(6.dp))
+
                     Icon(
                         imageVector = Icons.Default.LocationOn,
-                        contentDescription = null,
+                        contentDescription = "Déclenchement par lieu activé",
                         tint = mainTextColor
                     )
                 }
@@ -355,8 +371,16 @@ private fun RoutineItemCard(
                         } else {
                             Icons.Default.RadioButtonUnchecked
                         },
-                        contentDescription = null,
-                        tint = if (done) colors.secondary else colors.onSurfaceVariant,
+                        contentDescription = if (done) {
+                            "Marquer comme non terminée"
+                        } else {
+                            "Marquer comme terminée"
+                        },
+                        tint = if (done) {
+                            colors.secondary
+                        } else {
+                            colors.onSurfaceVariant
+                        },
                         modifier = Modifier.scale(scale)
                     )
                 }
@@ -379,29 +403,43 @@ private fun RoutineItemCard(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = if (done) "Terminée • $frequencyText" else frequencyText,
+                    text = if (done) {
+                        "Terminée • $frequencyText"
+                    } else {
+                        frequencyText
+                    },
                     modifier = Modifier.weight(1f),
                     color = secondaryTextColor,
                     style = MaterialTheme.typography.bodySmall
                 )
 
                 IconButton(
-                    onClick = { if (!done) onEdit() }
+                    onClick = onEdit,
+                    enabled = !done
                 ) {
                     Icon(
                         imageVector = Icons.Default.Edit,
-                        contentDescription = null,
-                        tint = if (done) colors.secondary else Color(0xFF2E7D32)
+                        contentDescription = "Modifier la routine",
+                        tint = if (done) {
+                            colors.onSurfaceVariant.copy(alpha = 0.35f)
+                        } else {
+                            Color(0xFF2E7D32)
+                        }
                     )
                 }
 
                 IconButton(
-                    onClick = { if (!done) showDeleteDialog = true }
+                    onClick = { showDeleteDialog = true },
+                    enabled = !done
                 ) {
                     Icon(
                         imageVector = Icons.Default.Delete,
                         contentDescription = "Supprimer la routine",
-                        tint = if (done) colors.secondary else Color(0xFFE53935)
+                        tint = if (done) {
+                            colors.onSurfaceVariant.copy(alpha = 0.35f)
+                        } else {
+                            Color(0xFFE53935)
+                        }
                     )
                 }
             }

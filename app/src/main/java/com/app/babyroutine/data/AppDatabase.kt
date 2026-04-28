@@ -8,14 +8,15 @@ import androidx.room.TypeConverters
 import com.app.babyroutine.model.Routine
 
 @Database(
-    entities = [Routine::class],
-    version = 2,
+    entities = [Routine::class, RoutineDailyState::class],
+    version = 3,
     exportSchema = false
 )
 @TypeConverters(RoutineConverters::class)
 abstract class AppDatabase : RoomDatabase() {
 
     abstract fun routineDao(): RoutineDao
+    abstract fun routineDailyStateDao(): RoutineDailyStateDao
 
     companion object {
         @Volatile

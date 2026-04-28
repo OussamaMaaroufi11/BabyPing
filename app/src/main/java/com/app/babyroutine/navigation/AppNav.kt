@@ -6,11 +6,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavType
@@ -73,7 +70,7 @@ sealed class Screen(val route: String) {
 }
 
 private data class DemoConfig(
-    val enabled: Boolean = true
+    val enabled: Boolean = false
 )
 
 private data class StatsUiState(
@@ -132,8 +129,11 @@ private object StatsCalculator {
     ): List<Int> {
         return weekKeys.map { key ->
             val doneCount = doneByDate[key]?.size ?: 0
-            if (routinesCount == 0) 0
-            else (doneCount.coerceAtMost(routinesCount) * 100) / routinesCount
+            if (routinesCount == 0) {
+                0
+            } else {
+                (doneCount.coerceAtMost(routinesCount) * 100) / routinesCount
+            }
         }
     }
 
@@ -227,7 +227,7 @@ fun AppRoot(
     val dependencies = remember(context) { createAppDependencies(context) }
     val notificationCoordinator = dependencies.notificationCoordinator
 
-    val demoConfig = remember { DemoConfig(enabled = true) }
+    val demoConfig = remember { DemoConfig() }
 
     val notificationsEnabled = remember { mutableStateOf(true) }
     val soundEnabled = remember { mutableStateOf(true) }
@@ -238,33 +238,32 @@ fun AppRoot(
     val profilePhone = remember { mutableStateOf("+1 000 000 0000") }
 
     val routines by routineViewModel.allRoutines.collectAsState(initial = emptyList())
-
-    val doneByDate = remember {
-        mutableStateMapOf<String, SnapshotStateList<String>>()
-    }
-
-    val ignoredByDate = remember {
-        mutableStateMapOf<String, SnapshotStateList<String>>()
-    }
+    val dailyStates by routineViewModel.allDailyStates.collectAsState(initial = emptyList())
 
     val currentDateKey = todayKey()
     val weekKeys = currentWeekKeys()
 
-    val doneTodayIds = doneByDate.getOrPut(currentDateKey) {
-        mutableStateListOf()
-    }
+    val doneTodayIds = dailyStates
+        .filter { it.dateKey == currentDateKey && it.wasCompleted }
+        .map { it.routineId }
 
-    val realIgnoredRemindersToday = ignoredByDate.getOrPut(currentDateKey) {
-        mutableStateListOf()
-    }
+    val realIgnoredRemindersToday = dailyStates
+        .filter { it.dateKey == currentDateKey && it.wasIgnored }
+        .map { it.routineTitle }
+
+    val ignoredByDate = dailyStates
+        .filter { it.wasIgnored }
+        .groupBy { it.dateKey }
+        .mapValues { entry -> entry.value.map { it.routineTitle } }
+
+    val doneByDate = dailyStates
+        .filter { it.wasCompleted }
+        .groupBy { it.dateKey }
+        .mapValues { entry -> entry.value.map { it.routineId } }
 
     val pendingPickedLocation = remember { mutableStateOf<RoutineLocation?>(null) }
 
-    val yesterdayKey = if (weekKeys.size >= 2) {
-        weekKeys[weekKeys.lastIndex - 1]
-    } else {
-        currentDateKey
-    }
+    val yesterdayKey = dateKey(LocalDate.now().minusDays(1))
 
     val realWeekProgress = StatsCalculator.calculateWeekProgress(
         weekKeys = weekKeys,
@@ -351,11 +350,16 @@ fun AppRoot(
                 routines = routines.filter { it.category == category },
                 doneIdsToday = doneTodayIds,
                 onToggleDone = { routineId ->
-                    if (doneTodayIds.contains(routineId)) {
-                        doneTodayIds.remove(routineId)
-                    } else {
-                        doneTodayIds.add(routineId)
-                    }
+                    val routine = routines.firstOrNull { it.id == routineId }
+                        ?: return@CategoryListScreen
+
+                    val isCurrentlyDone = doneTodayIds.contains(routineId)
+
+                    routineViewModel.setRoutineCompleted(
+                        routine = routine,
+                        dateKey = currentDateKey,
+                        completed = !isCurrentlyDone
+                    )
                 },
                 onBack = { navController.popBackStack() },
                 onQuit = {
@@ -393,6 +397,7 @@ fun AppRoot(
                         HomeTab.Home -> {
                             navController.popBackStack(Screen.Home.route, inclusive = false)
                         }
+
                         HomeTab.Suivi -> Unit
                     }
                 },

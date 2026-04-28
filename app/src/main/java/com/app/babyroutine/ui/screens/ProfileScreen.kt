@@ -8,6 +8,8 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
@@ -56,7 +58,7 @@ fun ProfileScreen(
     var phone by remember { mutableStateOf(initialPhone) }
 
     val backgroundBrush = Brush.verticalGradient(
-        listOf(
+        colors = listOf(
             colors.background,
             colors.surface,
             colors.surfaceVariant.copy(alpha = 0.4f),
@@ -77,7 +79,7 @@ fun ProfileScreen(
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(
-                            Icons.AutoMirrored.Filled.ArrowBack,
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Retour"
                         )
                     }
@@ -95,7 +97,9 @@ fun ProfileScreen(
                 .fillMaxSize()
                 .background(backgroundBrush)
                 .padding(innerPadding)
-                .padding(16.dp),
+                .padding(16.dp)
+                .imePadding()
+                .navigationBarsPadding(),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Surface(
@@ -105,9 +109,9 @@ fun ProfileScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .border(
-                        1.dp,
-                        colors.primary.copy(alpha = 0.2f),
-                        RoundedCornerShape(26.dp)
+                        width = 1.dp,
+                        color = colors.primary.copy(alpha = 0.2f),
+                        shape = RoundedCornerShape(26.dp)
                     )
             ) {
                 Column(
@@ -121,15 +125,15 @@ fun ProfileScreen(
                             .clip(CircleShape)
                             .background(colors.secondary.copy(alpha = 0.2f))
                             .border(
-                                2.dp,
-                                colors.primary.copy(alpha = 0.5f),
-                                CircleShape
+                                width = 2.dp,
+                                color = colors.primary.copy(alpha = 0.5f),
+                                shape = CircleShape
                             ),
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
                             imageVector = Icons.Default.Person,
-                            contentDescription = null,
+                            contentDescription = "Icône profil",
                             tint = colors.primary,
                             modifier = Modifier.size(34.dp)
                         )
@@ -183,12 +187,16 @@ fun ProfileScreen(
 
                     Button(
                         onClick = {
-                            onSave(name.trim(), email.trim(), phone.trim())
+                            onSave(
+                                name.trim(),
+                                email.trim(),
+                                phone.trim()
+                            )
                         },
                         shape = RoundedCornerShape(30.dp),
                         colors = ButtonDefaults.buttonColors(
                             containerColor = colors.primary,
-                            contentColor = androidx.compose.ui.graphics.Color.Black
+                            contentColor = colors.onPrimary
                         ),
                         modifier = Modifier
                             .fillMaxWidth()

@@ -24,6 +24,8 @@ object NotificationHelper {
     private const val CHANNEL_DESCRIPTION = "Notifications pour les routines BabyPing"
 
     const val EXTRA_OPEN_ROUTINE_ID = "extra_open_routine_id"
+    const val EXTRA_ROUTINE_ID = "extra_routine_id"
+    const val EXTRA_ROUTINE_TITLE = "extra_routine_title"
 
     fun createNotificationChannel(
         context: Context,
@@ -72,7 +74,7 @@ object NotificationHelper {
         title: String,
         message: String,
         routineId: String? = null,
-        notificationId: Int = abs(System.currentTimeMillis().toInt()),
+        notificationId: Int = routineId?.hashCode() ?: abs(System.currentTimeMillis().hashCode()),
         vibrationEnabled: Boolean = true
     ) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -86,8 +88,8 @@ object NotificationHelper {
 
         val openAppIntent = Intent(context, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
-            routineId?.let {
-                putExtra(EXTRA_OPEN_ROUTINE_ID, it)
+            routineId?.let { id ->
+                putExtra(EXTRA_OPEN_ROUTINE_ID, id)
             }
         }
 
@@ -106,6 +108,22 @@ object NotificationHelper {
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setContentIntent(pendingIntent)
             .setAutoCancel(true)
+
+        if (routineId != null) {
+            val dismissIntent = Intent(context, NotificationDismissReceiver::class.java).apply {
+                putExtra(EXTRA_ROUTINE_ID, routineId)
+                putExtra(EXTRA_ROUTINE_TITLE, title)
+            }
+
+            val dismissPendingIntent = PendingIntent.getBroadcast(
+                context,
+                notificationId + 1000,
+                dismissIntent,
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            )
+
+            builder.setDeleteIntent(dismissPendingIntent)
+        }
 
         if (vibrationEnabled) {
             builder.setVibrate(longArrayOf(0, 300, 200, 300))

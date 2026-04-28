@@ -7,15 +7,16 @@ import android.content.Intent
 class RoutineAlarmReceiver : BroadcastReceiver() {
 
     override fun onReceive(context: Context, intent: Intent) {
-        val routineId = intent.getStringExtra("routine_id")
-        val title = intent.getStringExtra("routine_title") ?: "Routine BabyPing"
-        val message = intent.getStringExtra("routine_message")
+        val routineId = intent.getStringExtra(RoutineScheduler.EXTRA_ROUTINE_ID)
+        val routineTitle = intent.getStringExtra(RoutineScheduler.EXTRA_ROUTINE_TITLE)
+            ?: "Routine BabyPing"
+        val routineMessage = intent.getStringExtra(RoutineScheduler.EXTRA_ROUTINE_MESSAGE)
             ?: "Il est temps d’effectuer votre routine."
 
         NotificationHelper.showRoutineNotification(
             context = context,
-            title = title,
-            message = message,
+            title = routineTitle,
+            message = routineMessage,
             routineId = routineId
         )
     }

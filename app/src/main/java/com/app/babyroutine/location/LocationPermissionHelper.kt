@@ -13,18 +13,22 @@ object LocationPermissionHelper {
     const val FOREGROUND_LOCATION_REQUEST_CODE = 1001
     const val BACKGROUND_LOCATION_REQUEST_CODE = 1002
 
-    fun hasForegroundLocationPermission(context: Context): Boolean {
-        val fineGranted = ContextCompat.checkSelfPermission(
+    fun hasFineLocationPermission(context: Context): Boolean {
+        return ContextCompat.checkSelfPermission(
             context,
             Manifest.permission.ACCESS_FINE_LOCATION
         ) == PackageManager.PERMISSION_GRANTED
+    }
 
-        val coarseGranted = ContextCompat.checkSelfPermission(
+    fun hasCoarseLocationPermission(context: Context): Boolean {
+        return ContextCompat.checkSelfPermission(
             context,
             Manifest.permission.ACCESS_COARSE_LOCATION
         ) == PackageManager.PERMISSION_GRANTED
+    }
 
-        return fineGranted || coarseGranted
+    fun hasForegroundLocationPermission(context: Context): Boolean {
+        return hasFineLocationPermission(context) || hasCoarseLocationPermission(context)
     }
 
     fun hasBackgroundLocationPermission(context: Context): Boolean {
@@ -38,8 +42,8 @@ object LocationPermissionHelper {
         }
     }
 
-    fun hasAllRequiredLocationPermissions(context: Context): Boolean {
-        return hasForegroundLocationPermission(context) &&
+    fun hasGeofenceLocationPermissions(context: Context): Boolean {
+        return hasFineLocationPermission(context) &&
                 hasBackgroundLocationPermission(context)
     }
 
@@ -77,7 +81,7 @@ object LocationPermissionHelper {
 
     fun shouldRequestBackgroundPermission(context: Context): Boolean {
         return Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q &&
-                hasForegroundLocationPermission(context) &&
+                hasFineLocationPermission(context) &&
                 !hasBackgroundLocationPermission(context)
     }
 }

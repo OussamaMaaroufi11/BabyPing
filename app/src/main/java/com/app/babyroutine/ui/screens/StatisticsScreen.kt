@@ -50,9 +50,15 @@ fun StatisticsScreen(
     onIgnoredRemindersClick: () -> Unit
 ) {
     val colors = MaterialTheme.colorScheme
-    val safeWeekProgress = weekProgress.take(7).let {
-        if (it.size == 7) it else List(7) { index -> it.getOrElse(index) { 0 } }
+
+    val safeWeekProgress = weekProgress.take(7).let { values ->
+        if (values.size == 7) {
+            values
+        } else {
+            List(7) { index -> values.getOrElse(index) { 0 } }
+        }
     }
+
     val weekLabels = listOf("L", "M", "M", "J", "V", "S", "D")
 
     val backgroundBrush = Brush.verticalGradient(
@@ -131,6 +137,7 @@ fun StatisticsScreen(
 private fun CompletedCard(percent: Int) {
     val colors = MaterialTheme.colorScheme
     val accent = Color(0xFF76C26B)
+    val safePercent = percent.coerceIn(0, 100)
 
     Surface(
         shape = RoundedCornerShape(24.dp),
@@ -149,7 +156,7 @@ private fun CompletedCard(percent: Int) {
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = "${percent.toString().padStart(2, '0')}%",
+                text = "${safePercent.toString().padStart(2, '0')}%",
                 style = MaterialTheme.typography.headlineMedium,
                 fontWeight = FontWeight.Bold,
                 color = accent
@@ -164,8 +171,9 @@ private fun CompletedCard(percent: Int) {
                     fontWeight = FontWeight.SemiBold,
                     color = colors.onSurface
                 )
+
                 Text(
-                    text = "Cette semaine",
+                    text = "Aujourd’hui",
                     style = MaterialTheme.typography.bodyMedium,
                     color = colors.onSurfaceVariant
                 )
@@ -184,7 +192,7 @@ private fun CompletedCard(percent: Int) {
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = "${percent}%",
+                    text = "$safePercent%",
                     style = MaterialTheme.typography.labelLarge,
                     fontWeight = FontWeight.Bold,
                     color = accent
@@ -257,8 +265,9 @@ private fun IgnoredCard(
                     fontWeight = FontWeight.SemiBold,
                     color = colors.onSurface
                 )
+
                 Text(
-                    text = "Cette semaine",
+                    text = "Aujourd’hui",
                     style = MaterialTheme.typography.bodyMedium,
                     color = colors.onSurfaceVariant
                 )
@@ -309,6 +318,7 @@ private fun TotalRoutinesCard(
                             fontWeight = FontWeight.SemiBold,
                             color = colors.onSurface
                         )
+
                         Text(
                             text = "Cette semaine",
                             style = MaterialTheme.typography.bodyMedium,
@@ -342,6 +352,7 @@ private fun WeeklyBarChart(
     modifier: Modifier = Modifier
 ) {
     val colors = MaterialTheme.colorScheme
+
     val barColors = listOf(
         Color(0xFF9FD7D3),
         Color(0xFFB9D9B4),
@@ -358,13 +369,20 @@ private fun WeeklyBarChart(
         verticalAlignment = Alignment.Bottom
     ) {
         values.forEachIndexed { index, value ->
+            val safeValue = value.coerceIn(0, 100)
+            val barHeight = safeValue.coerceIn(10, 100) * 0.55.dp
+
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Bottom
             ) {
                 Text(
-                    text = "${value}%",
-                    color = if (value <= 50) Color(0xFFE45B5B) else Color(0xFF5A9A73),
+                    text = "$safeValue%",
+                    color = if (safeValue <= 50) {
+                        Color(0xFFE45B5B)
+                    } else {
+                        Color(0xFF5A9A73)
+                    },
                     style = MaterialTheme.typography.labelSmall,
                     fontWeight = FontWeight.Bold
                 )
@@ -373,7 +391,7 @@ private fun WeeklyBarChart(
 
                 Box(
                     modifier = Modifier
-                        .height((value.coerceIn(10, 100)) * 0.55.dp)
+                        .height(barHeight)
                         .width(24.dp)
                         .background(
                             color = barColors[index % barColors.size],

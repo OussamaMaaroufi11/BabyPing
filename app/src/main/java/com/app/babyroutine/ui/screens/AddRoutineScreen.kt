@@ -85,24 +85,31 @@ fun AddRoutineScreen(
     var title by rememberSaveable(initialRoutine?.id, category) {
         mutableStateOf(initialRoutine?.title ?: "")
     }
+
     var description by rememberSaveable(initialRoutine?.id, category) {
         mutableStateOf(initialRoutine?.description ?: "")
     }
+
     var selectedCategory by rememberSaveable(initialRoutine?.id, category) {
         mutableStateOf(initialRoutine?.category ?: category)
     }
+
     var time by rememberSaveable(initialRoutine?.id, category) {
         mutableStateOf(initialRoutine?.time ?: "")
     }
+
     var frequencyName by rememberSaveable(initialRoutine?.id, category) {
         mutableStateOf((initialRoutine?.frequency ?: Frequency.DAILY).name)
     }
+
     var priorityName by rememberSaveable(initialRoutine?.id, category) {
         mutableStateOf((initialRoutine?.priority ?: Priority.HIGH).name)
     }
+
     var errorMessage by rememberSaveable(initialRoutine?.id, category) {
         mutableStateOf<String?>(null)
     }
+
     var categoryExpanded by rememberSaveable {
         mutableStateOf(false)
     }
@@ -112,6 +119,7 @@ fun AddRoutineScreen(
 
     fun openTimePicker() {
         val calendar = Calendar.getInstance()
+
         TimePickerDialog(
             context,
             { _, hour, minute ->
@@ -140,7 +148,11 @@ fun AddRoutineScreen(
             TopAppBar(
                 title = {
                     Text(
-                        text = if (initialRoutine == null) "Créer une routine" else "Modifier la routine",
+                        text = if (initialRoutine == null) {
+                            "Créer une routine"
+                        } else {
+                            "Modifier la routine"
+                        },
                         fontWeight = FontWeight.SemiBold
                     )
                 },
@@ -354,13 +366,17 @@ fun AddRoutineScreen(
                                     selected = priority == Priority.LOW,
                                     onSelect = { priorityName = Priority.LOW.name }
                                 )
+
                                 Spacer(modifier = Modifier.width(10.dp))
+
                                 PriorityRadio(
                                     label = "Moyenne",
                                     selected = priority == Priority.MEDIUM,
                                     onSelect = { priorityName = Priority.MEDIUM.name }
                                 )
+
                                 Spacer(modifier = Modifier.width(10.dp))
+
                                 PriorityRadio(
                                     label = "Élevée",
                                     selected = priority == Priority.HIGH,
@@ -378,7 +394,7 @@ fun AddRoutineScreen(
                             )
 
                             Surface(
-                                color = if (initialRoutine != null || selectedLocation != null) {
+                                color = if (selectedLocation != null) {
                                     colors.secondaryContainer.copy(alpha = 0.55f)
                                 } else {
                                     colors.surfaceVariant.copy(alpha = 0.45f)
@@ -400,12 +416,15 @@ fun AddRoutineScreen(
                                     Row(verticalAlignment = Alignment.CenterVertically) {
                                         Icon(
                                             imageVector = Icons.Default.LocationOn,
-                                            contentDescription = null,
+                                            contentDescription = "Lieu de déclenchement",
                                             tint = colors.primary
                                         )
+
                                         Spacer(modifier = Modifier.width(8.dp))
+
                                         Text(
-                                            text = selectedLocation?.displayName ?: "Aucun lieu sélectionné",
+                                            text = selectedLocation?.displayName
+                                                ?: "Aucun lieu sélectionné",
                                             fontWeight = FontWeight.SemiBold,
                                             color = colors.onSurface
                                         )
@@ -416,10 +435,12 @@ fun AddRoutineScreen(
                                             text = "Latitude : %.5f".format(selectedLocation.latitude),
                                             color = colors.onSurfaceVariant
                                         )
+
                                         Text(
                                             text = "Longitude : %.5f".format(selectedLocation.longitude),
                                             color = colors.onSurfaceVariant
                                         )
+
                                         Text(
                                             text = "Rayon : ${selectedLocation.radius.toInt()} m",
                                             color = colors.onSurfaceVariant
@@ -471,7 +492,8 @@ fun AddRoutineScreen(
                                     latitude = selectedLocation?.latitude ?: initialRoutine?.latitude,
                                     longitude = selectedLocation?.longitude ?: initialRoutine?.longitude,
                                     radius = selectedLocation?.radius ?: initialRoutine?.radius ?: 100f,
-                                    locationName = selectedLocation?.locationName ?: initialRoutine?.locationName,
+                                    locationName = selectedLocation?.locationName
+                                        ?: initialRoutine?.locationName,
                                     notificationsEnabled = initialRoutine?.notificationsEnabled ?: true
                                 )
 
@@ -539,6 +561,7 @@ private fun FrequencyRadio(
             selected = selected,
             onClick = onSelect
         )
+
         Text(
             text = label,
             color = MaterialTheme.colorScheme.onSurface
@@ -557,6 +580,7 @@ private fun PriorityRadio(
             selected = selected,
             onClick = onSelect
         )
+
         Text(
             text = label,
             color = MaterialTheme.colorScheme.onSurface

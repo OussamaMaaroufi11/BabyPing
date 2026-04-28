@@ -2,12 +2,20 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <!-- Internet requis pour OpenStreetMap / osmdroid -->
     <uses-permission android:name="android.permission.INTERNET" />
+
+    <!-- Notifications Android 13+ -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
+    <!-- Localisation pour les déclenchements contextuels -->
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
+
+    <!-- Alarmes exactes pour les rappels programmés -->
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 
     <application
@@ -22,12 +30,17 @@
         tools:targetApi="31">
 
         <receiver
-            android:name=".location.GeofenceBroadcastReceiver"
+            android:name=".notifications.RoutineAlarmReceiver"
             android:enabled="true"
             android:exported="false" />
 
         <receiver
-            android:name=".notifications.RoutineAlarmReceiver"
+            android:name=".notifications.NotificationDismissReceiver"
+            android:enabled="true"
+            android:exported="false" />
+
+        <receiver
+            android:name=".location.GeofenceBroadcastReceiver"
             android:enabled="true"
             android:exported="false" />
 
@@ -37,9 +50,11 @@
             android:theme="@style/Theme.BabyRoutineApp">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
 
     </application>
+
 </manifest>

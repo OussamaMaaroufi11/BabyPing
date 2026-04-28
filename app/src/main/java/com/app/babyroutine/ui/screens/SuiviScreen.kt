@@ -12,9 +12,9 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -36,6 +36,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.app.babyroutine.model.HomeTab
@@ -91,7 +92,7 @@ fun SuiviScreen(
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(
-                            Icons.AutoMirrored.Filled.ArrowBack,
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Retour"
                         )
                     }
@@ -141,11 +142,16 @@ fun SuiviScreen(
                     fontWeight = FontWeight.Black,
                     color = colors.onBackground
                 )
+
                 Spacer(modifier = Modifier.weight(1f))
+
                 Text(
                     text = "TOUT VOIR",
                     color = colors.onSurfaceVariant,
-                    modifier = Modifier.clickable { onSeeAllClick() }
+                    fontWeight = FontWeight.SemiBold,
+                    modifier = Modifier.clickable(role = Role.Button) {
+                        onSeeAllClick()
+                    }
                 )
             }
 
@@ -209,6 +215,7 @@ private fun ProgressCard(
                             style = MaterialTheme.typography.bodySmall,
                             color = colors.onSurfaceVariant
                         )
+
                         Text(
                             text = routineText,
                             fontWeight = FontWeight.Black,
@@ -296,6 +303,7 @@ private fun CalendarCard(
             )
 
             Spacer(modifier = Modifier.height(12.dp))
+
             WeekRow(thisWeek)
 
             Spacer(modifier = Modifier.height(18.dp))
@@ -314,6 +322,7 @@ private fun CalendarCard(
             )
 
             Spacer(modifier = Modifier.height(12.dp))
+
             WeekRow(nextWeek)
         }
     }
@@ -396,8 +405,9 @@ private fun buildWeek(
     startMonday: LocalDate,
     selectedDate: LocalDate?
 ): List<DayBubble> {
-    return (0..6).map {
-        val date = startMonday.plusDays(it.toLong())
+    return (0..6).map { offset ->
+        val date = startMonday.plusDays(offset.toLong())
+
         DayBubble(
             day = "%02d".format(date.dayOfMonth),
             letter = frenchLetter(date.dayOfWeek),
@@ -407,14 +417,16 @@ private fun buildWeek(
 }
 
 @RequiresApi(Build.VERSION_CODES.O)
-private fun frenchLetter(day: DayOfWeek) = when (day) {
-    DayOfWeek.MONDAY -> "L"
-    DayOfWeek.TUESDAY -> "M"
-    DayOfWeek.WEDNESDAY -> "M"
-    DayOfWeek.THURSDAY -> "J"
-    DayOfWeek.FRIDAY -> "V"
-    DayOfWeek.SATURDAY -> "S"
-    DayOfWeek.SUNDAY -> "D"
+private fun frenchLetter(day: DayOfWeek): String {
+    return when (day) {
+        DayOfWeek.MONDAY -> "L"
+        DayOfWeek.TUESDAY -> "M"
+        DayOfWeek.WEDNESDAY -> "M"
+        DayOfWeek.THURSDAY -> "J"
+        DayOfWeek.FRIDAY -> "V"
+        DayOfWeek.SATURDAY -> "S"
+        DayOfWeek.SUNDAY -> "D"
+    }
 }
 
 @RequiresApi(Build.VERSION_CODES.O)

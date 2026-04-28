@@ -30,7 +30,7 @@ class NotificationCoordinator(
 
     fun syncLocationTrigger(routine: Routine) {
         if (routine.notificationsEnabled && routine.hasLocationTrigger) {
-            geofenceManager.addGeofenceForRoutine(routine)
+            geofenceManager.refreshGeofenceForRoutine(routine)
         } else {
             geofenceManager.removeGeofenceForRoutine(routine.id)
         }

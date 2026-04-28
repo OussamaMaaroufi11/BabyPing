@@ -15,6 +15,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.LocationOn
@@ -44,6 +45,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.app.babyroutine.model.Frequency
@@ -64,7 +66,7 @@ fun RoutineOptionsScreen(
     var showDeleteDialog by remember { mutableStateOf(false) }
 
     val backgroundBrush = Brush.verticalGradient(
-        listOf(
+        colors = listOf(
             colors.background,
             colors.surface,
             colors.surfaceVariant.copy(alpha = 0.35f),
@@ -180,7 +182,7 @@ fun RoutineOptionsScreen(
                         ) {
                             Icon(
                                 imageVector = Icons.Default.Notifications,
-                                contentDescription = null,
+                                contentDescription = "Notifications",
                                 tint = colors.primary,
                                 modifier = Modifier.size(20.dp)
                             )
@@ -290,7 +292,7 @@ fun RoutineOptionsScreen(
 
 @Composable
 private fun InfoRow(
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    icon: ImageVector,
     label: String,
     value: String
 ) {
@@ -311,7 +313,7 @@ private fun InfoRow(
             ) {
                 Icon(
                     imageVector = icon,
-                    contentDescription = null,
+                    contentDescription = label,
                     tint = colors.primary,
                     modifier = Modifier.size(18.dp)
                 )
@@ -326,6 +328,7 @@ private fun InfoRow(
                 style = MaterialTheme.typography.labelMedium,
                 color = colors.onSurfaceVariant
             )
+
             Text(
                 text = value,
                 style = MaterialTheme.typography.bodyMedium,
@@ -340,7 +343,7 @@ private fun InfoRow(
 private fun ActionCard(
     text: String,
     subtitle: String,
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    icon: ImageVector,
     iconTint: Color,
     containerColor: Color,
     onClick: () -> Unit
@@ -362,7 +365,7 @@ private fun ActionCard(
         ) {
             Icon(
                 imageVector = icon,
-                contentDescription = null,
+                contentDescription = text,
                 tint = iconTint,
                 modifier = Modifier.size(24.dp)
             )
@@ -375,6 +378,7 @@ private fun ActionCard(
                     fontWeight = FontWeight.SemiBold,
                     color = Color.Black
                 )
+
                 Text(
                     text = subtitle,
                     style = MaterialTheme.typography.bodySmall,
@@ -382,10 +386,10 @@ private fun ActionCard(
                 )
             }
 
-            Text(
-                text = ">",
-                fontWeight = FontWeight.Bold,
-                color = Color.Black
+            Icon(
+                imageVector = Icons.Default.ChevronRight,
+                contentDescription = "Ouvrir",
+                tint = Color.Black
             )
         }
     }

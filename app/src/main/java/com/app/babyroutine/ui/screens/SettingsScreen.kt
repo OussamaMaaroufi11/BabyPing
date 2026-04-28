@@ -37,6 +37,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 
@@ -136,9 +138,10 @@ private fun ProfileCard(
     onClick: () -> Unit
 ) {
     val colors = MaterialTheme.colorScheme
+    val shape = RoundedCornerShape(24.dp)
 
     Surface(
-        shape = RoundedCornerShape(24.dp),
+        shape = shape,
         color = colors.surface,
         shadowElevation = 8.dp,
         modifier = Modifier
@@ -146,16 +149,17 @@ private fun ProfileCard(
             .border(
                 width = 1.dp,
                 color = colors.outline.copy(alpha = 0.18f),
-                shape = RoundedCornerShape(24.dp)
+                shape = shape
             )
-            .clickable { onClick() }
+            .clickable(role = Role.Button) { onClick() }
     ) {
         Row(
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 18.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             CircleIcon(
-                icon = Icons.Default.Person
+                icon = Icons.Default.Person,
+                contentDescription = "Profil"
             )
 
             Spacer(modifier = Modifier.size(14.dp))
@@ -167,6 +171,7 @@ private fun ProfileCard(
                     fontWeight = FontWeight.SemiBold,
                     color = colors.onSurface
                 )
+
                 Text(
                     text = profileName,
                     style = MaterialTheme.typography.bodyLarge,
@@ -176,7 +181,7 @@ private fun ProfileCard(
 
             Icon(
                 imageVector = Icons.Default.ChevronRight,
-                contentDescription = "Ouvrir profil",
+                contentDescription = "Ouvrir le profil",
                 tint = colors.onSurface
             )
         }
@@ -185,16 +190,17 @@ private fun ProfileCard(
 
 @Composable
 private fun SwitchCard(
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    icon: ImageVector,
     title: String,
     subtitle: String,
     checked: Boolean,
     onCheckedChange: (Boolean) -> Unit
 ) {
     val colors = MaterialTheme.colorScheme
+    val shape = RoundedCornerShape(24.dp)
 
     Surface(
-        shape = RoundedCornerShape(24.dp),
+        shape = shape,
         color = colors.surface,
         shadowElevation = 8.dp,
         modifier = Modifier
@@ -202,14 +208,17 @@ private fun SwitchCard(
             .border(
                 width = 1.dp,
                 color = colors.outline.copy(alpha = 0.18f),
-                shape = RoundedCornerShape(24.dp)
+                shape = shape
             )
     ) {
         Row(
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 18.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            CircleIcon(icon = icon)
+            CircleIcon(
+                icon = icon,
+                contentDescription = title
+            )
 
             Spacer(modifier = Modifier.size(14.dp))
 
@@ -220,6 +229,7 @@ private fun SwitchCard(
                     fontWeight = FontWeight.SemiBold,
                     color = colors.onSurface
                 )
+
                 Text(
                     text = subtitle,
                     style = MaterialTheme.typography.bodySmall,
@@ -248,9 +258,10 @@ private fun NotificationsCard(
     onSwitchChange: (Boolean) -> Unit
 ) {
     val colors = MaterialTheme.colorScheme
+    val shape = RoundedCornerShape(24.dp)
 
     Surface(
-        shape = RoundedCornerShape(24.dp),
+        shape = shape,
         color = colors.surface,
         shadowElevation = 8.dp,
         modifier = Modifier
@@ -258,15 +269,18 @@ private fun NotificationsCard(
             .border(
                 width = 1.dp,
                 color = colors.outline.copy(alpha = 0.18f),
-                shape = RoundedCornerShape(24.dp)
+                shape = shape
             )
-            .clickable { onCardClick() }
+            .clickable(role = Role.Button) { onCardClick() }
     ) {
         Row(
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 18.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            CircleIcon(icon = Icons.Default.Notifications)
+            CircleIcon(
+                icon = Icons.Default.Notifications,
+                contentDescription = "Notifications"
+            )
 
             Spacer(modifier = Modifier.size(14.dp))
 
@@ -277,6 +291,7 @@ private fun NotificationsCard(
                     fontWeight = FontWeight.SemiBold,
                     color = colors.onSurface
                 )
+
                 Text(
                     text = "Gérer les alertes, sons et vibrations",
                     style = MaterialTheme.typography.bodySmall,
@@ -300,7 +315,8 @@ private fun NotificationsCard(
 
 @Composable
 private fun CircleIcon(
-    icon: androidx.compose.ui.graphics.vector.ImageVector
+    icon: ImageVector,
+    contentDescription: String
 ) {
     val colors = MaterialTheme.colorScheme
 
@@ -315,7 +331,7 @@ private fun CircleIcon(
     ) {
         Icon(
             imageVector = icon,
-            contentDescription = null,
+            contentDescription = contentDescription,
             tint = colors.primary
         )
     }

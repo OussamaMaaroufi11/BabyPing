@@ -35,6 +35,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableDoubleStateOf
 import androidx.compose.runtime.mutableFloatStateOf
@@ -70,10 +71,11 @@ fun MapPickerScreen(
 
     val defaultLatitude = initialLocation?.latitude ?: 48.4284
     val defaultLongitude = initialLocation?.longitude ?: -71.0686
+    val defaultRadius = initialLocation?.radius ?: 150f
 
     var selectedLatitude by remember { mutableDoubleStateOf(defaultLatitude) }
     var selectedLongitude by remember { mutableDoubleStateOf(defaultLongitude) }
-    var selectedRadius by remember { mutableFloatStateOf(initialLocation?.radius ?: 150f) }
+    var selectedRadius by remember { mutableFloatStateOf(defaultRadius) }
 
     val backgroundBrush = Brush.verticalGradient(
         colors = listOf(
@@ -123,9 +125,8 @@ fun MapPickerScreen(
         mapView.invalidate()
     }
 
-    DisposableEffect(selectedLatitude, selectedLongitude, selectedRadius) {
+    LaunchedEffect(selectedLatitude, selectedLongitude, selectedRadius) {
         refreshMap()
-        onDispose { }
     }
 
     DisposableEffect(Unit) {
@@ -222,10 +223,12 @@ fun MapPickerScreen(
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Icon(
                                 imageVector = Icons.Default.LocationOn,
-                                contentDescription = null,
+                                contentDescription = "Lieu sélectionné",
                                 tint = colors.primary
                             )
+
                             Spacer(modifier = Modifier.width(8.dp))
+
                             Text(
                                 text = "Choisir un lieu",
                                 style = MaterialTheme.typography.titleMedium,
@@ -255,6 +258,7 @@ fun MapPickerScreen(
                                         style = MaterialTheme.typography.labelSmall,
                                         color = colors.onSurfaceVariant
                                     )
+
                                     Text(
                                         text = "%.4f".format(selectedLatitude),
                                         fontWeight = FontWeight.SemiBold,
@@ -274,6 +278,7 @@ fun MapPickerScreen(
                                         style = MaterialTheme.typography.labelSmall,
                                         color = colors.onSurfaceVariant
                                     )
+
                                     Text(
                                         text = "%.4f".format(selectedLongitude),
                                         fontWeight = FontWeight.SemiBold,
@@ -307,7 +312,8 @@ fun MapPickerScreen(
                                         latitude = selectedLatitude,
                                         longitude = selectedLongitude,
                                         radius = selectedRadius,
-                                        locationName = "Zone personnalisée"
+                                        locationName = initialLocation?.locationName
+                                            ?: "Zone personnalisée"
                                     )
                                 )
                             },

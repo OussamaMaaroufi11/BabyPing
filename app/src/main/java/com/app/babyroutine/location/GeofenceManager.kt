@@ -22,7 +22,7 @@ class GeofenceManager(
     private val geofencingClient: GeofencingClient =
         LocationServices.getGeofencingClient(context)
 
-    private fun hasForegroundLocationPermission(): Boolean {
+    private fun hasFineLocationPermission(): Boolean {
         return ContextCompat.checkSelfPermission(
             context,
             Manifest.permission.ACCESS_FINE_LOCATION
@@ -41,7 +41,7 @@ class GeofenceManager(
     }
 
     private fun hasRequiredLocationPermission(): Boolean {
-        return hasForegroundLocationPermission() && hasBackgroundLocationPermission()
+        return hasFineLocationPermission() && hasBackgroundLocationPermission()
     }
 
     private fun geofencePendingIntent(routine: Routine): PendingIntent {
@@ -85,7 +85,6 @@ class GeofenceManager(
             .setRequestId(routine.id)
             .setCircularRegion(latitude, longitude, safeRadius)
             .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_ENTER)
-            .setLoiteringDelay(0)
             .setExpirationDuration(Geofence.NEVER_EXPIRE)
             .build()
 
@@ -116,8 +115,16 @@ class GeofenceManager(
     }
 
     fun refreshGeofenceForRoutine(routine: Routine) {
-        removeGeofenceForRoutine(routine.id)
-        addGeofenceForRoutine(routine)
+        geofencingClient
+            .removeGeofences(listOf(routine.id))
+            .addOnSuccessListener {
+                Log.d(TAG, "Ancienne geofence supprimée pour ${routine.id}")
+                addGeofenceForRoutine(routine)
+            }
+            .addOnFailureListener { exception ->
+                Log.w(TAG, "Suppression précédente échouée, tentative d'ajout quand même pour ${routine.id}", exception)
+                addGeofenceForRoutine(routine)
+            }
     }
 
     companion object {

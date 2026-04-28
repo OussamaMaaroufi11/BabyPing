@@ -35,6 +35,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 
@@ -158,7 +159,7 @@ fun NotificationSettingsScreen(
 
 @Composable
 private fun NotificationOptionCard(
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    icon: ImageVector,
     title: String,
     subtitle: String,
     checked: Boolean,
@@ -185,13 +186,13 @@ private fun NotificationOptionCard(
         ) {
             Surface(
                 shape = RoundedCornerShape(16.dp),
-                color = colors.secondary.copy(alpha = 0.15f),
+                color = colors.secondary.copy(alpha = if (enabled) 0.15f else 0.08f),
                 modifier = Modifier.padding(end = 14.dp)
             ) {
                 Icon(
                     imageVector = icon,
-                    contentDescription = null,
-                    tint = colors.primary,
+                    contentDescription = title,
+                    tint = if (enabled) colors.primary else colors.onSurfaceVariant,
                     modifier = Modifier.padding(10.dp)
                 )
             }
@@ -203,6 +204,7 @@ private fun NotificationOptionCard(
                     fontWeight = FontWeight.SemiBold,
                     color = if (enabled) colors.onSurface else colors.onSurfaceVariant
                 )
+
                 Text(
                     text = subtitle,
                     style = MaterialTheme.typography.bodySmall,

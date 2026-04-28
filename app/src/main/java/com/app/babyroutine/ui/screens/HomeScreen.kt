@@ -11,8 +11,8 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -28,7 +28,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -48,6 +47,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.app.babyroutine.R
 import com.app.babyroutine.data.homeCategories
+import com.app.babyroutine.model.Frequency
 import com.app.babyroutine.model.HomeTab
 import com.app.babyroutine.model.Routine
 import com.app.babyroutine.ui.components.BabyPingBottomBar
@@ -99,7 +99,7 @@ fun BabyPingHomeScreen(
                     ) {
                         Icon(
                             imageVector = Icons.Default.Settings,
-                            contentDescription = "Paramètres",
+                            contentDescription = "Ouvrir les paramètres",
                             tint = colors.primary,
                             modifier = Modifier.size(38.dp)
                         )
@@ -167,7 +167,11 @@ fun BabyPingHomeScreen(
                             .clip(CircleShape)
                             .border(1.dp, colors.outline, CircleShape)
                     ) {
-                        Icon(Icons.Default.Add, contentDescription = "Ajouter une routine")
+                        Icon(
+                            imageVector = Icons.Default.Add,
+                            contentDescription = "Ajouter une routine",
+                            tint = colors.onSurface
+                        )
                     }
                 }
 
@@ -181,9 +185,9 @@ fun BabyPingHomeScreen(
                             routines = routines,
                             frequencyTextProvider = { routine ->
                                 when (routine.frequency) {
-                                    com.app.babyroutine.model.Frequency.DAILY -> "Tous les jours"
-                                    com.app.babyroutine.model.Frequency.SOME_DAYS -> "Certains jours"
-                                    com.app.babyroutine.model.Frequency.ONCE -> "Une seule fois"
+                                    Frequency.DAILY -> "Tous les jours"
+                                    Frequency.SOME_DAYS -> "Certains jours"
+                                    Frequency.ONCE -> "Une seule fois"
                                 }
                             },
                             onRoutineClick = onRoutineClick
@@ -198,7 +202,7 @@ fun BabyPingHomeScreen(
                 AlertDialog(
                     onDismissRequest = { showCategoryPicker = false },
                     modifier = Modifier.shadow(
-                        20.dp,
+                        elevation = 20.dp,
                         shape = RoundedCornerShape(30.dp),
                         ambientColor = colors.primary.copy(alpha = 0.2f),
                         spotColor = colors.primary.copy(alpha = 0.3f)
@@ -229,8 +233,11 @@ fun BabyPingHomeScreen(
                         ) {
                             categories.forEach { category ->
                                 val bgColor =
-                                    if (isDark) colors.surfaceVariant.copy(alpha = 0.75f)
-                                    else category.bgColor
+                                    if (isDark) {
+                                        colors.surfaceVariant.copy(alpha = 0.75f)
+                                    } else {
+                                        category.bgColor
+                                    }
 
                                 OutlinedButton(
                                     onClick = {
@@ -260,7 +267,7 @@ fun BabyPingHomeScreen(
                                         ) {
                                             Icon(
                                                 imageVector = category.icon,
-                                                contentDescription = null,
+                                                contentDescription = category.title,
                                                 tint = colors.primary
                                             )
                                         }
@@ -291,8 +298,9 @@ fun BabyPingHomeScreen(
 @Composable
 private fun babyPingBackgroundBrush(): Brush {
     val colors = MaterialTheme.colorScheme
+
     return Brush.verticalGradient(
-        listOf(
+        colors = listOf(
             colors.background,
             colors.surface,
             colors.surfaceVariant.copy(alpha = 0.4f),

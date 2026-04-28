@@ -11,9 +11,9 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -35,6 +35,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -54,7 +55,11 @@ fun CategoryMiniCard(
     val isDark = colors.background.luminance() < 0.5f
 
     val clickableModifier =
-        if (onClick != null) Modifier.clickable { onClick() } else Modifier
+        if (onClick != null) {
+            Modifier.clickable(role = Role.Button) { onClick() }
+        } else {
+            Modifier
+        }
 
     val cardBrush =
         if (isDark) {
@@ -79,7 +84,11 @@ fun CategoryMiniCard(
         modifier = Modifier
             .width(170.dp)
             .height(90.dp)
-            .border(1.dp, colors.outline.copy(alpha = 0.28f), shape)
+            .border(
+                width = 1.dp,
+                color = colors.outline.copy(alpha = 0.28f),
+                shape = shape
+            )
             .then(clickableModifier),
         shadowElevation = if (isDark) 10.dp else 6.dp
     ) {
@@ -95,20 +104,24 @@ fun CategoryMiniCard(
                             .size(36.dp)
                             .clip(CircleShape)
                             .background(
-                                if (isDark) colors.background.copy(alpha = 0.9f)
-                                else colors.surface.copy(alpha = 0.85f)
+                                if (isDark) {
+                                    colors.background.copy(alpha = 0.9f)
+                                } else {
+                                    colors.surface.copy(alpha = 0.85f)
+                                }
                             )
                             .border(
-                                1.dp,
-                                colors.outline.copy(alpha = 0.25f),
-                                CircleShape
+                                width = 1.dp,
+                                color = colors.outline.copy(alpha = 0.25f),
+                                shape = CircleShape
                             ),
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
                             imageVector = icon,
-                            contentDescription = null,
-                            tint = if (isDark) colors.primary else colors.onSurface
+                            contentDescription = title,
+                            tint = if (isDark) colors.primary else colors.onSurface,
+                            modifier = Modifier.size(20.dp)
                         )
                     }
 
@@ -141,18 +154,19 @@ fun CategoryMiniCard(
 @Composable
 fun EmptyRoutineCard(text: String) {
     val colors = MaterialTheme.colorScheme
+    val shape = RoundedCornerShape(22.dp)
 
     Surface(
-        shape = RoundedCornerShape(22.dp),
+        shape = shape,
         color = colors.surface,
         shadowElevation = 8.dp,
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 18.dp)
             .border(
-                1.dp,
-                colors.outline.copy(alpha = 0.24f),
-                RoundedCornerShape(22.dp)
+                width = 1.dp,
+                color = colors.outline.copy(alpha = 0.24f),
+                shape = shape
             )
     ) {
         Text(
@@ -178,7 +192,10 @@ fun ReminderList(
         modifier = Modifier.fillMaxWidth(),
         contentPadding = PaddingValues(bottom = 90.dp)
     ) {
-        items(routines, key = { it.id }) { routine ->
+        items(
+            items = routines,
+            key = { routine -> routine.id }
+        ) { routine ->
             ReminderCard(
                 routine = routine,
                 frequencyText = frequencyTextProvider(routine),
@@ -207,21 +224,34 @@ fun ReminderCard(
 
     val darkBrushes = listOf(
         Brush.linearGradient(
-            listOf(colors.surface, colors.surfaceVariant.copy(alpha = 0.85f))
+            colors = listOf(
+                colors.surface,
+                colors.surfaceVariant.copy(alpha = 0.85f)
+            )
         ),
         Brush.linearGradient(
-            listOf(colors.surfaceVariant.copy(alpha = 0.88f), colors.surface)
+            colors = listOf(
+                colors.surfaceVariant.copy(alpha = 0.88f),
+                colors.surface
+            )
         ),
         Brush.linearGradient(
-            listOf(colors.surface.copy(alpha = 0.98f), colors.surfaceVariant.copy(alpha = 0.82f))
+            colors = listOf(
+                colors.surface.copy(alpha = 0.98f),
+                colors.surfaceVariant.copy(alpha = 0.82f)
+            )
         ),
         Brush.linearGradient(
-            listOf(colors.surfaceVariant.copy(alpha = 0.82f), colors.surface.copy(alpha = 0.96f))
+            colors = listOf(
+                colors.surfaceVariant.copy(alpha = 0.82f),
+                colors.surface.copy(alpha = 0.96f)
+            )
         )
     )
 
-    val lightColor = lightColors[(routine.title.hashCode().absoluteValue) % lightColors.size]
-    val darkBrush = darkBrushes[(routine.title.hashCode().absoluteValue) % darkBrushes.size]
+    val colorIndex = routine.title.hashCode().absoluteValue % lightColors.size
+    val lightColor = lightColors[colorIndex]
+    val darkBrush = darkBrushes[colorIndex]
 
     Surface(
         shape = shape,
@@ -229,15 +259,26 @@ fun ReminderCard(
         shadowElevation = if (isDark) 8.dp else 6.dp,
         modifier = Modifier
             .fillMaxWidth()
-            .border(1.dp, colors.outline.copy(alpha = 0.30f), shape)
-            .clickable { onClick() }
+            .border(
+                width = 1.dp,
+                color = colors.outline.copy(alpha = 0.30f),
+                shape = shape
+            )
+            .clickable(role = Role.Button) { onClick() }
     ) {
         Box(
             modifier = Modifier
                 .background(
-                    if (isDark) darkBrush else Brush.linearGradient(
-                        listOf(lightColor, lightColor.copy(alpha = 0.92f))
-                    )
+                    if (isDark) {
+                        darkBrush
+                    } else {
+                        Brush.linearGradient(
+                            colors = listOf(
+                                lightColor,
+                                lightColor.copy(alpha = 0.92f)
+                            )
+                        )
+                    }
                 )
                 .padding(14.dp)
         ) {
@@ -247,7 +288,8 @@ fun ReminderCard(
                         text = routine.title,
                         modifier = Modifier.weight(1f),
                         fontWeight = FontWeight.Medium,
-                        color = colors.onSurface
+                        color = colors.onSurface,
+                        maxLines = 1
                     )
 
                     Text(
@@ -260,8 +302,9 @@ fun ReminderCard(
 
                     Icon(
                         imageVector = Icons.Default.Alarm,
-                        contentDescription = null,
-                        tint = if (isDark) colors.primary else colors.onSurface
+                        contentDescription = "Heure de la routine",
+                        tint = if (isDark) colors.primary else colors.onSurface,
+                        modifier = Modifier.size(20.dp)
                     )
                 }
 
@@ -301,7 +344,8 @@ fun ReminderCard(
                         Icon(
                             imageVector = Icons.Default.Notifications,
                             contentDescription = "Notifications activées",
-                            tint = if (isDark) colors.primary else colors.onSurface
+                            tint = if (isDark) colors.primary else colors.onSurface,
+                            modifier = Modifier.size(20.dp)
                         )
                     }
                 }

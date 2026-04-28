@@ -23,7 +23,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
@@ -82,7 +81,7 @@ private fun BigBottomItem(
         else colors.surfaceVariant.copy(alpha = 0.42f)
 
     val iconColor =
-        if (selected) Color.Black
+        if (selected) colors.onSecondary
         else colors.onSurfaceVariant
 
     val borderColor =
@@ -90,7 +89,7 @@ private fun BigBottomItem(
         else colors.outline.copy(alpha = 0.22f)
 
     val textColor =
-        if (selected) colors.onBackground
+        if (selected) colors.onSurface
         else colors.onSurfaceVariant
 
     Column(

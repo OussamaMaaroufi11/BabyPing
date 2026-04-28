@@ -44,11 +44,22 @@ object RoutineValidator {
         val hasLatitude = routine.latitude != null
         val hasLongitude = routine.longitude != null
 
-        return if (hasLatitude.xor(hasLongitude)) {
-            ValidationResult(false, "Les coordonnées du lieu sont incomplètes.")
-        } else {
-            ValidationResult(true)
+        if (hasLatitude.xor(hasLongitude)) {
+            return ValidationResult(false, "Les coordonnées du lieu sont incomplètes.")
         }
+
+        val latitude = routine.latitude
+        val longitude = routine.longitude
+
+        if (latitude != null && latitude !in -90.0..90.0) {
+            return ValidationResult(false, "La latitude du lieu est invalide.")
+        }
+
+        if (longitude != null && longitude !in -180.0..180.0) {
+            return ValidationResult(false, "La longitude du lieu est invalide.")
+        }
+
+        return ValidationResult(true)
     }
 
     fun validateForSave(routine: Routine): ValidationResult {

@@ -134,31 +134,6 @@ Cette fonctionnalité utilise :
 
 ---
 
-## ✅ Validation métier
-
-La logique métier est centralisée dans `RoutineValidator`.
-
-Les validations principales sont :
-
-- le titre de la routine est obligatoire
-- la catégorie est obligatoire
-- l’heure est obligatoire
-- l’heure doit respecter le format `HH:mm`
-- les coordonnées de localisation doivent être complètes
-
----
-
-## 🧪 Tests unitaires
-
-Des tests unitaires peuvent être ajoutés pour valider les éléments essentiels de la logique métier, notamment :
-
-- validation des champs obligatoires
-- validation du format de l’heure
-- validation des données de localisation
-- calcul des statistiques de progression
-
----
-
 ## 🚀 Installation et lancement
 
 ### Prérequis
@@ -182,75 +157,6 @@ git clone https://github.com/OussamaMaaroufi11/BabyPing.git
 3. Synchroniser Gradle.
 
 4. Lancer l’application sur un émulateur ou un appareil Android.
-
----
-
-## ⚙️ Permissions utilisées
-
-L’application utilise les permissions suivantes :
-
-```xml
-<uses-permission android:name="android.permission.INTERNET" />
-<uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
-<uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
-<uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
-<uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
-<uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
-<uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
-```
-
-Ces permissions sont nécessaires pour :
-
-- afficher la carte
-- envoyer des notifications
-- utiliser la géolocalisation
-- programmer des rappels
-- gérer les déclenchements contextuels
-
----
-
-## 👥 Équipe
-
-Projet réalisé par le groupe 16.
-
-| Membre | Rôle |
-|---|---|
-| Oussama Maaroufi | Développement des fonctionnalités PP3 |
-| Algassimou Koulibaly | Design UX/UI et prototype Figma |
-| Adama Teme | Tests et validation visuelle |
-| Teremana Honoré | Documentation et rapport technique |
-
----
-
-## 🤖 Utilisation de l’IA
-
-L’intelligence artificielle a été utilisée comme outil d’aide au développement pour :
-
-- améliorer l’architecture du projet
-- corriger des erreurs de compilation
-- valider certains choix techniques
-- améliorer l’organisation du code
-- aider à la rédaction de la documentation
-- expliquer certains concepts liés à Room, MVVM, notifications et Geofencing
-
-Le code final a été vérifié, adapté et intégré manuellement par l’équipe.
-
----
-
-## 📌 État du projet
-
-Version finale du projet pratique 3.
-
-Fonctionnalités principales complétées :
-
-- Architecture MVVM
-- Room Database
-- Notifications
-- Geofencing
-- Carte OpenStreetMap
-- Statistiques
-- Mode sombre
-- Interface alignée avec le prototype Figma
 
 ---
 
